@@ -6,7 +6,7 @@ boX (bo-chi) is a flexible, high-performance 2D rendering engine built on WebGL.
 ## Usage
 
 ## This reminds me of something...
-Is it Unity? Flash? Starling? Cocos-2d? THREE.js? Yup. There's a little bit of everything in TwoDee, and hopefully some
+Is it Unity? Flash? Starling? Cocos-2d? THREE.js? Yup. There's a little bit of everything in boX, and hopefully some
 stuff you've never seen before. The easy of Unity without the burden of a black-boxed renderer or scene graph. The
 familiar API of Flash or Starling without the stupidity (and with loads more performance). The mechanical preciseness of
  Cocos2d without the unbe-bloody-lievably horrible usability. To top it all off, that certain JavaScript grace and
