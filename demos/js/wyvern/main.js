@@ -10,6 +10,7 @@ var main = (function () {
     var canvas,
         renderer,
         engine = new Engine(),
+        scene = engine.getScene(),
         spriteSheetScheduler = new SpriteSheetScheduler(),
 
         wyvernParent,
@@ -26,6 +27,7 @@ var main = (function () {
         renderer = new WebGLRenderer(canvas);
         engine.initialize(renderer);
 
+
         setupDebugEnvironment(engine);
         // end boilerplate
         //////////////////
@@ -40,14 +42,13 @@ var main = (function () {
 
         // add wyvern
         wyvernParent = new DisplayObject();
-        engine.getScene().root.addChild(wyvernParent);
+        scene.root.addChild(wyvernParent);
 
         // input listeners
         addInput();
 
         // update loop
         engine.onPreUpdate.add(onPreUpdate);
-        engine.onPostUpdate.add(onPostUpdate);
 
         // plug in the scheduler
         engine.onPreUpdate.add(spriteSheetScheduler.onPreUpdate);
@@ -99,34 +100,20 @@ var main = (function () {
 
         wyvern.setCurrentAnimationByName(animationName);
         wyvernShadow.setCurrentAnimationByName(animationName);
-
-        /*
-        else if (16 === keyCode) {
-            shift = isDown;
-        }
-        else if (17 === keyCode) {
-            ctrl = isDown;
-        }
-        else if (32 === keyCode) {
-            space = isDown;
-        }
-        */
-    }
-
-    function onPostUpdate(dt) {
-
     }
 
     function addInput() {
-        $(document).keydown(function(event) {
-            if (13 === event.which) {
-               engine.paused = !engine.paused;
-            }
+        $(document)
+            .keydown(function(event) {
+                if (13 === event.which) {
+                   engine.paused = !engine.paused;
+                }
 
-            toggle(event.which, true);
-        }).keyup(function(event) {
-            toggle(event.which, false);
-        });
+                toggle(event.which, true);
+            })
+            .keyup(function(event) {
+                toggle(event.which, false);
+            });
 
         function toggle(keyCode, isDown) {
             if (isDown) {
