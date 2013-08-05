@@ -85,7 +85,7 @@
         };
 
         that.setCurrentAnimationByName = function(animationName) {
-            if (null != _currentAnimation && _currentAnimation.name === animationName) {
+            if (null !== _currentAnimation && _currentAnimation.name === animationName) {
                 return;
             }
 

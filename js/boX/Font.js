@@ -62,7 +62,7 @@
     Font.prototype = {
         constructor: Font,
 
-        import: function(definition) {
+        initialize: function(definition) {
             // parse it!
             var doc = XMLHelper.parse(definition.xmlDefinition);
             var chars = doc.getElementsByTagName("char");

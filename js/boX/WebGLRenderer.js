@@ -53,7 +53,7 @@
                 scope.projectionMatrix = mat4.ortho(
                     mat4.create(),
                     0, width,
-                    height, 0
+                    height,
                     -1, 1);
             };
         })();

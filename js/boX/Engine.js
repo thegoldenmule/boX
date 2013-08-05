@@ -36,9 +36,9 @@ var Log = (function() {
     function loggingFunction(level) {
         return function() {
             var args =  Array.prototype.slice.call(arguments);
-            if (0 == args.length) {
+            if (0 === args.length) {
                 return;
-            } else if (1 == args.length) {
+            } else if (1 === args.length) {
                 log("[" + level + "] : " + args[0]);
             } else {
                 log("[" + level + "] : " + replaceTokens(args[0], args.slice(1)));
@@ -94,7 +94,6 @@ var Engine = (function() {
         that.initialize = function(renderer) {
             if (true === _initialized) {
                 throw new Error("Cannot initialize Engine twice!");
-                return;
             }
             _initialized = true;
 

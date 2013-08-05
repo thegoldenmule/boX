@@ -9,7 +9,7 @@
     var Signal = signals.Signal;
 
     var __totalBatches = 0,
-        __total
+        __total;
 
     var Scene = function () {
         var scope = this;

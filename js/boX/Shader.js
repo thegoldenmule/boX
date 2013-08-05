@@ -141,40 +141,32 @@ var Shader = (function() {
 
                     switch (definition.type) {
                         case ShaderUniformTypes.FLOAT:
-                        {
                             ctx.uniform1f(definition.pointer, definition.value);
                             break;
-                        }
+
                         case ShaderUniformTypes.VEC2:
-                        {
                             ctx.uniform2fv(definition.pointer, definition.value);
                             break;
-                        }
+
                         case ShaderUniformTypes.VEC3:
-                        {
                             ctx.uniform3fv(definition.pointer, definition.value);
                             break;
-                        }
+
                         case ShaderUniformTypes.VEC4:
-                        {
                             ctx.uniform4fv(definition.pointer, definition.value);
                             break;
-                        }
+
                         case ShaderUniformTypes.MAT2:
-                        {
                             ctx.uniformMatrix2fv(definition.pointer, false, definition.value);
                             break;
-                        }
+
                         case ShaderUniformTypes.MAT3:
-                        {
                             ctx.uniformMatrix3fv(definition.pointer, false, definition.value);
                             break;
-                        }
+
                         case ShaderUniformTypes.MAT4:
-                        {
                             ctx.uniformMatrix4fv(definition.pointer, false, definition.value);
                             break;
-                        }
                     }
                 });
         };

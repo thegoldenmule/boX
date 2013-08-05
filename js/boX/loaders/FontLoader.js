@@ -31,7 +31,7 @@
                 if (null !== imageLoader.image &&
                     null !== xmlLoader.data) {
                     scope.font = new Font();
-                    scope.font.import(new FontDefinition(xmlLoader.data, imageLoader.image));
+                    scope.font.initialize(new FontDefinition(xmlLoader.data, imageLoader.image));
 
                     scope.onLoaded.dispatch();
                 }
