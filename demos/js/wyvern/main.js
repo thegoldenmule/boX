@@ -27,7 +27,6 @@ var main = (function () {
         renderer = new WebGLRenderer(canvas);
         engine.initialize(renderer);
 
-
         setupDebugEnvironment(engine);
         // end boilerplate
         //////////////////

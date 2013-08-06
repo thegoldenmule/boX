@@ -5,8 +5,6 @@
  * EmissionRateFade, Attractor.
  *
  * @author thegoldenmule
- *
- * MIT license.
  */
 (function(global) {
     "use strict";
@@ -23,9 +21,13 @@
      * used that will omit creating particles within the innerRadius.
      */
     global.particle.Position = function(xval, yval, radius, innerRadius) {
-        this.x = xval;
-        this.y = yval;
-        this.innerRadius = innerRadius ? innerRadius : 0;
+        this.x = undefined === xval ? 0 : xval;
+        this.y = undefined === yval ? 0 : yval;
+        this.innerRadius = undefined === innerRadius ? 0 : innerRadius;
+
+        if (undefined === radius) {
+            radius = 10;
+        }
 
         if (radius <= this.innerRadius) {
             radius = this.innerRadius + 1;
@@ -37,13 +39,13 @@
     global.particle.Position.prototype = {
         initialize:
             function(emitter, particle) {
-                particle.x = this.x + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
-                particle.y = this.y + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
+                particle.transform.position.x = this.x + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
+                particle.transform.position.y = this.y + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
 
                 if (0 !== this.innerRadius) {
                     var randomAngle = Math.random() * 2 * Math.PI;
-                    particle.x += this.innerRadius * Math.sin(randomAngle);
-                    particle.y += this.innerRadius * Math.cos(randomAngle);
+                    particle.transform.position.x += this.innerRadius * Math.sin(randomAngle);
+                    particle.transform.position.y += this.innerRadius * Math.cos(randomAngle);
                 }
             }
     };
@@ -153,8 +155,8 @@
         return {
             update:
                 function(emitter, particle) {
-                    particle.ax = this.x - particle.x / this.amount;
-                    particle.ay = this.y - particle.y / this.amount;
+                    particle.ax = this.x - particle.transform.position.x / this.amount;
+                    particle.ay = this.y - particle.transform.position.y / this.amount;
                 }
         };
     })();

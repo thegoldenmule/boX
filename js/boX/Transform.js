@@ -22,7 +22,9 @@
             x:0,
             y:0
         };
+
         scope.rotationInRadians = 0;
+
         scope.scale = {
             x: 1,
             y: 1

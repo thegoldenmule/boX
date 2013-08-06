@@ -327,6 +327,7 @@ var Log = (function() {
 
     return {
         debug : loggingFunction("Debug"),
+        info : loggingFunction("Info"),
         warn : loggingFunction("Warn"),
         error : loggingFunction("Error")
     };
@@ -359,9 +360,14 @@ var Engine = (function() {
         /// Private Variables
         var _initialized = false,
             _renderer = null,
-            _lastUpdate = 0;
+            _lastUpdate = 0,
+            _totalTime = 0;
 
         // Public Methods
+        that.getSimulationTime = function() {
+            return _totalTime;
+        };
+
         that.getRenderer = function() {
             return _renderer;
         };
@@ -398,6 +404,9 @@ var Engine = (function() {
             if (that.paused) {
                 return;
             }
+
+            _totalTime += dt;
+
             _renderer.preUpdate();
             that.onPreUpdate.dispatch(dt);
 
@@ -1268,7 +1277,9 @@ var Shader = (function() {
             x:0,
             y:0
         };
+
         scope.rotationInRadians = 0;
+
         scope.scale = {
             x: 1,
             y: 1
@@ -1344,24 +1355,30 @@ var Shader = (function() {
         var scope = this;
 
         var _canvas,
-            _ctx;
+            _ctx,
+            _debugInformation = {};
 
-        scope.getWidth = function() {
-            return canvas.clientWidth;
-        };
-
-        scope.getHeight = function() {
-            return canvas.clientHeight;
-        };
-
+        /**
+         * Returns the CanvasDomElement being used.
+         *
+         * @returns {*}
+         */
         scope.getCanvas = function() {
             return _canvas;
         };
 
+        /**
+         * Returns the WebGL context eing used.
+         *
+         * @returns {*}
+         */
         scope.getContext = function() {
             return _ctx;
         };
 
+        /**
+         * Resizes the viewport based on a resize to the CanvasDomElement.
+         */
         scope.resize = (function() {
 
             var oldWidth = 0;
@@ -1403,6 +1420,8 @@ var Shader = (function() {
             // use the debug context if we want to see verbose logs
             if (window.isTwoDeeDebug) {
                 _ctx = WebGLDebugUtils.makeDebugContext(_ctx);
+
+                _debugInformation.isDebugCanvas = true;
             }
 
             _ctx.clearColor(1, 1, 1, 1);
@@ -1424,6 +1443,24 @@ var Shader = (function() {
 
     WebGLRenderer.prototype = {
         constructor:WebGLRenderer,
+
+        /**
+         * Returns the width of the viewport.
+         *
+         * @returns {number}
+         */
+        getWidth: function() {
+            return this.getCanvas().clientWidth;
+        },
+
+        /**
+         * Returns the height of the viewport.
+         *
+         * @returns {number}
+         */
+        getHeight: function() {
+            return this.getCanvas().clientHeight;
+        },
 
         /**
          * Appends a shader to the DOM. Definitions are objects in the form:
@@ -1449,6 +1486,9 @@ var Shader = (function() {
             }
         },
 
+        /**
+         * Called as part of the boX cycle, before any drawing is done.
+         */
         preUpdate: function() {
             this.resize();
 
@@ -1456,6 +1496,11 @@ var Shader = (function() {
             context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT);
         },
 
+        /**
+         * Draws a RenderBatch to the screen.
+         *
+         * @param renderBatch
+         */
         drawBatch: function(renderBatch) {
             var context = this.getContext();
 
@@ -1510,6 +1555,11 @@ var Shader = (function() {
             }
         },
 
+        /**
+         * Draws a single DisplayObject.
+         *
+         * @param displayObject
+         */
         drawDisplayObject: function(displayObject) {
             var context = this.getContext();
 
@@ -1556,10 +1606,9 @@ var Shader = (function() {
             displayObject.geometry.draw(context);
         },
 
-        drawParticleSystem: function(particleSystem) {
-
-        },
-
+        /**
+         * Draws a bounding box for a DisplayObject.
+         */
         drawBoundingBox: (function() {
             var bbShader = null;
 
@@ -1593,6 +1642,13 @@ var Shader = (function() {
         })()
     };
 
+    /**
+     * Composes a Color through the scene graph.
+     *
+     * @param displayObject
+     * @param out
+     * @returns {*}
+     */
     function composeColor(displayObject, out) {
         if (null !== displayObject.parent) {
             composeColor(displayObject.parent, out);
@@ -1610,6 +1666,83 @@ var Shader = (function() {
     global.WebGLRenderer = WebGLRenderer;
 })(this);
 /**
+ * Quick and dirty object pool implementation. Does not grow.
+ *
+ * Author: thegoldenmule
+ */
+(function(global) {
+    "use strict";
+
+    var IDS = 0;
+
+    /**
+     * Creates a static pool of objects.
+     *
+     * @param size      The number of objects to allocate.
+     * @param factory   A Function that returns a new object.
+     * @param onGet     (optional) A Function to call when an instance is retrieved.
+     * @param onPut     (optional) A Function to call ehwn an instance is released.
+     * @returns {*}
+     * @constructor
+     */
+    var ObjectPool = function(size, factory, onGet, onPut) {
+        var scope = this,
+            _id = "__pool" + (++IDS),
+            _instances = [size],
+            _availableIndices = [size];
+
+        for (var i = 0; i < size; i++) {
+            _availableIndices[i] = i;
+
+            _instances[i] = factory();
+            _instances[i][_id] = i;
+        }
+
+        /**
+         * Retrieves an object, or null if none are left in the pool.
+         *
+         * @returns {*}
+         */
+        scope.get = function() {
+            if (_availableIndices.length > 0) {
+                var index = _availableIndices.pop();
+                var instance = _instances[index];
+                instance[_id] = index;
+
+                if (undefined !== onGet) {
+                    onGet(instance);
+                }
+
+                return instance;
+            }
+
+            return null;
+        };
+
+        /**
+         * Puts an object back in the pool.
+         *
+         * @param instance
+         */
+        scope.put = function(instance) {
+            if (undefined === instance[_id]) {
+                return;
+            }
+
+            _availableIndices.push(instance[_id]);
+
+            if (undefined !== onPut) {
+                onPut(instance);
+            }
+        };
+
+        return scope;
+    };
+
+    global.ObjectPool = ObjectPool;
+
+})(this);
+/**
  * Author: thegoldenmule
  * Date: 5/26/13
  *
@@ -1623,29 +1756,57 @@ var Shader = (function() {
     var Set = function () {
         var scope = this;
 
-        var _guidKey = "__setindex" + (++__indices),
+        var _guidKey = "__set" + (++__indices),
             _elements = [];
 
+        /**
+         * Adds an element to the set.
+         *
+         * @param element
+         */
         scope.add = function(element) {
+            scope.remove(element);
+
             element[_guidKey] = _elements.length;
             _elements.push(element);
+
+            return element;
         };
 
+        /**
+         * Removes an element from the set.
+         *
+         * @param element
+         */
         scope.remove = function(element) {
-            if (!element[_guidKey]) {
+            if (undefined === element[_guidKey]) {
                 return;
             }
 
             if (_elements.length > 1) {
                 var index = element[_guidKey];
-                element[index] = _elements.pop();
-                element[index][_guidKey] = index;
+
+                if (index === _elements.length) {
+                    _elements.pop();
+                }
+                else {
+                    element[index] = _elements.pop();
+                    element[index][_guidKey] = index;
+                }
+
                 delete element[_guidKey];
             } else {
                 _elements.pop();
             }
+
+            return element;
         };
 
+        /**
+         * Retrieves all elements of the set.
+         *
+         * @returns {Array}
+         */
         scope.getElements = function() {
             return [].concat(_elements);
         };
@@ -2292,8 +2453,6 @@ ImageLoader.loadResources = function(urls, callback) {
  * EmissionRateFade, Attractor.
  *
  * @author thegoldenmule
- *
- * MIT license.
  */
 (function(global) {
     "use strict";
@@ -2310,9 +2469,13 @@ ImageLoader.loadResources = function(urls, callback) {
      * used that will omit creating particles within the innerRadius.
      */
     global.particle.Position = function(xval, yval, radius, innerRadius) {
-        this.x = xval;
-        this.y = yval;
-        this.innerRadius = innerRadius ? innerRadius : 0;
+        this.x = undefined === xval ? 0 : xval;
+        this.y = undefined === yval ? 0 : yval;
+        this.innerRadius = undefined === innerRadius ? 0 : innerRadius;
+
+        if (undefined === radius) {
+            radius = 10;
+        }
 
         if (radius <= this.innerRadius) {
             radius = this.innerRadius + 1;
@@ -2324,13 +2487,13 @@ ImageLoader.loadResources = function(urls, callback) {
     global.particle.Position.prototype = {
         initialize:
             function(emitter, particle) {
-                particle.x = this.x + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
-                particle.y = this.y + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
+                particle.transform.position.x = this.x + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
+                particle.transform.position.y = this.y + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
 
                 if (0 !== this.innerRadius) {
                     var randomAngle = Math.random() * 2 * Math.PI;
-                    particle.x += this.innerRadius * Math.sin(randomAngle);
-                    particle.y += this.innerRadius * Math.cos(randomAngle);
+                    particle.transform.position.x += this.innerRadius * Math.sin(randomAngle);
+                    particle.transform.position.y += this.innerRadius * Math.cos(randomAngle);
                 }
             }
     };
@@ -2440,8 +2603,8 @@ ImageLoader.loadResources = function(urls, callback) {
         return {
             update:
                 function(emitter, particle) {
-                    particle.ax = this.x - particle.x / this.amount;
-                    particle.ay = this.y - particle.y / this.amount;
+                    particle.ax = this.x - particle.transform.position.x / this.amount;
+                    particle.ay = this.y - particle.transform.position.y / this.amount;
                 }
         };
     })();
@@ -2455,21 +2618,28 @@ ImageLoader.loadResources = function(urls, callback) {
 (function (global) {
     "use strict";
 
-    var Particle = function () {
+    var Particle = function (material) {
         var scope = this;
 
+        // extend DisplayObject
+        DisplayObject.call(scope, {color:new Color(1, 0, 0, 1)});
+
+        scope.material = material;
+        scope.material.shader.setShaderProgramIds("particle-shader-vs", "particle-shader-fs");
+
         // basic physics model
-        scope.x = 0;
-        scope.y = 0;
         scope.vx = 0;
         scope.vy = 0;
         scope.ax = 0;
         scope.ay = 0;
-
-        scope.alive = 0;
+        scope.elapsedTime = 0;
+        scope.isAlive = false;
 
         return scope;
     };
+
+    Particle.prototype = new DisplayObject();
+    Particle.prototype.constructor = Particle;
 
     var ParticleEmitter = function (plugins, x, y) {
         var scope = this;
@@ -2480,25 +2650,32 @@ ImageLoader.loadResources = function(urls, callback) {
         var _plugins = plugins ? [].concat(plugins) : [],
             _helper = 0,
             _bufferIndex = 0,
-            _particlesDoubleBuffer = [[], []];
+            _maxParticles = 1000,
+            _particleBuffer = new Set(),    // particles do not need to be ordered
 
-        // special geometry + rendering
-        scope.geometry = new ParticleEmitterGeometry();
+            // create a pool of particles
+            _particlePool = new ObjectPool(
+                _maxParticles,
+                function allocate() {
+                    return new Particle(scope.material);
+                },
+                function get(instance) {
+                    scope.addChild(instance);
+
+                    instance.elapsedTime = 0;
+                    instance.isAlive = true;
+                    instance.lifetime = scope.lifetime;
+                },
+                function put(instance) {
+                    scope.removeChild(instance);
+
+                    instance.isAlive = false;
+                });
+
         scope.material.shader.setShaderProgramIds("particle-shader-vs", "particle-shader-fs");
 
-        scope.emissionRate = 50;
-        scope.particles = _particlesDoubleBuffer[_bufferIndex];
-        scope.maxParticles = 10000;
+        scope.emissionRate = 5;
         scope.lifetime = 1000;
-
-        function applyPlugins(particle, plugins, method, dt) {
-            for (var j = 0, len = plugins.length; j < len; j++) {
-                var plugin = plugins[j];
-                if ("function" === typeof plugin[method]) {
-                    plugin[method](scope, particle, dt);
-                }
-            }
-        }
 
         scope.withProperty = function(property, value) {
             scope[property] = value;
@@ -2526,82 +2703,157 @@ ImageLoader.loadResources = function(urls, callback) {
 
             // add new particles
             var particle;
-            var rate = scope.emissionRate,
-            len = scope.particles.length;
-            for (var i = 0; i < rate; i++) {
-                particle = new Particle();
-                particle.lifetime = scope.lifetime;
+            var rate = scope.emissionRate;
+            for (var i = _bufferIndex, len = _bufferIndex + rate; i < len; i++) {
+                particle = _particlePool.get();
 
-                // apply plugins
+                if (null === particle) {
+                    break;
+                }
+
+                // initialize phase
                 applyPlugins(particle, _plugins, "initialize", dt);
 
-                // kick out particles over the max
-                if (len === scope.maxParticles) {
-                    scope.particles[_helper++ % scope.maxParticles] = particle;
-                } else {
-                    scope.particles.push(particle);
-                }
+                // add to buffer
+                _particleBuffer.add(particle);
             }
 
             // update particles + remove dead ones
-            var aliveBuffer = _particlesDoubleBuffer[++_bufferIndex % 2];
-            aliveBuffer.length = 0;
-            for (i = 0, len = scope.particles.length; i < len; i++) {
-                particle = scope.particles[i];
+            var particles = _particleBuffer.getElements();
+            for (i = 0, len = particles.length; i < len; i++) {
+                particle = particles[i];
 
-                // apply plugins
-                applyPlugins(particle, _plugins, "update", dt);
+                // update age + prune
+                particle.elapsedTime += dt;
 
-                // we're not doing real integration here, though plugins are free to
+                // dead?
+                if (particle.elapsedTime >= particle.lifetime) {
+                    _particleBuffer.remove(particle);
+                    _particlePool.put(particle);
+
+                    continue;
+                }
+
+                // TODO: at least use Euler...
 
                 // apply acceleration
                 particle.vx += particle.ax;
                 particle.vy += particle.ay;
 
                 // apply velocity
-                particle.x += particle.vx;
-                particle.y += particle.vy;
+                particle.transform.position.x += particle.vx;
+                particle.transform.position.y += particle.vy;
 
-                // update age + prune
-                particle.alive += dt;
-
-                if (particle.alive < particle.lifetime) {
-                    // apply plugins
-                    applyPlugins(particle, _plugins, "render", dt);
-
-                    aliveBuffer.push(particle);
-                }
+                // apply plugins
+                applyPlugins(particle, _plugins, "update", dt);
             }
-            scope.particles = aliveBuffer;
 
             // tell plugins they are done!
             applyPlugins(null, _plugins, "updateEndGlobal", dt);
         };
+
+        function applyPlugins(particle, plugins, method, dt) {
+            for (var j = 0, len = plugins.length; j < len; j++) {
+                var plugin = plugins[j];
+                if ("function" === typeof plugin[method]) {
+                    plugin[method](scope, particle, dt);
+                }
+            }
+        }
     };
 
     ParticleEmitter.prototype = new DisplayObject();
     ParticleEmitter.prototype.constructor = ParticleEmitter;
 
-    var ParticleEmitterGeometry = function() {
-        this.vertices = [];
-        this.vertexBuffer = null;
+    // export
+    global.Particle = Particle;
+    global.ParticleEmitter = ParticleEmitter;
+})(this);
+/**
+ * Author: thegoldenmule
+ */
+
+(function(global) {
+    "use strict";
+
+    var ParticleEmitterGeometry = function (emitter) {
+        var scope = this;
+
+        scope.width = 1;
+        scope.height = 1;
+
+        scope.vertices = null;
+        scope.uvs = null;
+        scope.colors = null;
+
+        scope.vertexBuffer = null;
+        scope.uvBuffer = null;
+        scope.colorBuffer = null;
+
+        scope.__apply = true;
+
+        return scope;
     };
 
     ParticleEmitterGeometry.prototype = {
-        apply: function() {
+        constructor: ParticleEmitterGeometry,
 
+        rebuild: function(particles) {
+            this.vertices = new Float32Array(particles * 8);    // 4 verts, 2 coords
+            this.uvs = new Float32Array(particles * 8);         // 4 verts, 2 coords
+            this.colors = new Float32Array(particles * 16);     // 4 verts, 4 coords
+        },
+
+        apply: function() {
+            this.__apply = true;
         },
 
         clearBuffers: function() {
-
+            this.vertexBuffer = this.uvBuffer = this.colorBuffer = null;
         },
 
-        prepareBuffers: function(ctx) {
+        prepareBuffers: function() {
+            if (null === this.vertexBuffer) {
+                this.vertexBuffer = ctx.createBuffer();
+            }
 
+            if (null === this.uvBuffer) {
+                this.uvBuffer = ctx.createBuffer();
+            }
+
+            if (null === this.colorBuffer) {
+                this.colorBuffer = ctx.createBuffer();
+            }
+
+            if (this.__apply) {
+                ctx.bindBuffer(ctx.ARRAY_BUFFER, this.vertexBuffer);
+                ctx.bufferData(ctx.ARRAY_BUFFER, this.vertices, ctx.STATIC_DRAW);
+
+                ctx.bindBuffer(ctx.ARRAY_BUFFER, this.uvBuffer);
+                ctx.bufferData(ctx.ARRAY_BUFFER, this.uvs, ctx.STATIC_DRAW);
+
+                ctx.bindBuffer(ctx.ARRAY_BUFFER, this.colorBuffer);
+                ctx.bufferData(ctx.ARRAY_BUFFER, this.colors, ctx.STATIC_DRAW);
+            }
+
+            this.__apply = false;
         },
 
-        pushBuffers: function(ctx) {
+        pushBuffers: function(ctx, shader) {
+            if (-1 < shader.vertexBufferAttributePointer) {
+                ctx.bindBuffer(ctx.ARRAY_BUFFER, this.vertexBuffer);
+                ctx.vertexAttribPointer(shader.vertexBufferAttributePointer, 2, ctx.FLOAT, false, 0, 0);
+            }
 
+            if (-1 < shader.uvBufferAttributePointer) {
+                ctx.bindBuffer(ctx.ARRAY_BUFFER, this.uvBuffer);
+                ctx.vertexAttribPointer(shader.uvBufferAttributePointer, 2, ctx.FLOAT, false, 0, 0);
+            }
+
+            if (-1 < shader.vertexColorBufferAttributePointer) {
+                ctx.bindBuffer(ctx.ARRAY_BUFFER, this.colorBuffer);
+                ctx.vertexAttribPointer(shader.vertexColorBufferAttributePointer, 4, ctx.FLOAT, false, 0, 0);
+            }
         },
 
         draw: function(ctx) {
@@ -2609,9 +2861,7 @@ ImageLoader.loadResources = function(urls, callback) {
         }
     };
 
-    // export
-    global.Particle = Particle;
-    global.ParticleEmitter = ParticleEmitter;
+    global.ParticleEmitterGeometry = ParticleEmitterGeometry;
 })(this);
 function extend(subClass, superClass) {
     var F = function() {};

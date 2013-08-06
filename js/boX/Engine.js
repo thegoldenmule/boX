@@ -48,6 +48,7 @@ var Log = (function() {
 
     return {
         debug : loggingFunction("Debug"),
+        info : loggingFunction("Info"),
         warn : loggingFunction("Warn"),
         error : loggingFunction("Error")
     };
@@ -80,9 +81,14 @@ var Engine = (function() {
         /// Private Variables
         var _initialized = false,
             _renderer = null,
-            _lastUpdate = 0;
+            _lastUpdate = 0,
+            _totalTime = 0;
 
         // Public Methods
+        that.getSimulationTime = function() {
+            return _totalTime;
+        };
+
         that.getRenderer = function() {
             return _renderer;
         };
@@ -119,6 +125,9 @@ var Engine = (function() {
             if (that.paused) {
                 return;
             }
+
+            _totalTime += dt;
+
             _renderer.preUpdate();
             that.onPreUpdate.dispatch(dt);
 
