@@ -22,17 +22,24 @@ var main = (function() {
         // end boilerplate
         //////////////////
 
+        /*
+        Create a new emitter.
+            * Spawn particles within 2 units of (0, 0).
+            * Give each particle a velocity given in polar coordinates.
+            * Apply an acceleration due to gravity.
+         */
         var emitter = new ParticleEmitter([
             new particle.Position(0, 0, 2),
             new particle.Velocity(
                 Math.PI / 4,
                 3 * Math.PI / 4,
-                0.1, 0.3)
+                0.3, 0.7),
+            new particle.Acceleration(0, 0.0098)
         ]);
         emitter.emissionRate = 1;
-        emitter.lifetime = 1000;
+        emitter.lifetime = 2000;
         emitter.transform.scale.x = emitter.transform.scale.y = 10;
-            emitter.transform.position.x = emitter.transform.position.y = 100;
+        emitter.transform.position.x = emitter.transform.position.y = 300;
         scene.root.addChild(emitter);
 
         engine.onPreUpdate.add(emitter.update);

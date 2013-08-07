@@ -42,12 +42,12 @@
             if (_elements.length > 1) {
                 var index = element[_guidKey];
 
-                if (index === _elements.length) {
+                if (index === _elements.length - 1) {
                     _elements.pop();
                 }
                 else {
-                    element[index] = _elements.pop();
-                    element[index][_guidKey] = index;
+                    _elements[index] = _elements.pop();
+                    _elements[index][_guidKey] = index;
                 }
 
                 delete element[_guidKey];

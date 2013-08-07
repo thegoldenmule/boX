@@ -6,6 +6,14 @@
 (function (global) {
     "use strict";
 
+    /**
+     * A Particle class. This extends DisplayObject and holds a simple physical
+     * model.
+     *
+     * @param material The material to use.
+     * @returns {*}
+     * @constructor
+     */
     var Particle = function (material) {
         var scope = this;
 
@@ -29,7 +37,16 @@
     Particle.prototype = new DisplayObject();
     Particle.prototype.constructor = Particle;
 
-    var ParticleEmitter = function (plugins, x, y) {
+    /**
+     * The ParticleEmitter class emits Particle objects, which are children.
+     *
+     * @param plugins
+     * @param x
+     * @param y
+     * @param maxParticles
+     * @constructor
+     */
+    var ParticleEmitter = function (plugins, x, y, maxParticles) {
         var scope = this;
 
         // extend DisplayObject
@@ -38,7 +55,7 @@
         var _plugins = plugins ? [].concat(plugins) : [],
             _helper = 0,
             _bufferIndex = 0,
-            _maxParticles = 1000,
+            _maxParticles = (undefined === maxParticles) ? 1000 : maxParticles,
             _particleBuffer = new Set(),    // particles do not need to be ordered
 
             // create a pool of particles
@@ -65,18 +82,24 @@
         scope.emissionRate = 5;
         scope.lifetime = 1000;
 
-        scope.withProperty = function(property, value) {
-            scope[property] = value;
-
-            return scope;
-        };
-
+        /**
+         * Adds a plugin dynamically.
+         *
+         * @param plugin
+         * @returns {*}
+         */
         scope.addPlugin = function(plugin) {
             _plugins.push(plugin);
 
             return scope;
         };
 
+        /**
+         * Removes a plugin dynamically.
+         *
+         * @param plugin
+         * @returns {*}
+         */
         scope.removePlugin = function(plugin) {
             var index = _plugins.indexOf(plugin);
             if (-1 !== index) {
@@ -86,6 +109,11 @@
             return scope;
         };
 
+        /**
+         * Called as part of boX's update loop.
+         *
+         * @param dt
+         */
         scope.update = function(dt) {
             applyPlugins(null, _plugins, "updateGlobal", dt);
 

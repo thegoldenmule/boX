@@ -1786,12 +1786,12 @@ var Shader = (function() {
             if (_elements.length > 1) {
                 var index = element[_guidKey];
 
-                if (index === _elements.length) {
+                if (index === _elements.length - 1) {
                     _elements.pop();
                 }
                 else {
-                    element[index] = _elements.pop();
-                    element[index][_guidKey] = index;
+                    _elements[index] = _elements.pop();
+                    _elements[index][_guidKey] = index;
                 }
 
                 delete element[_guidKey];
@@ -2518,8 +2518,8 @@ ImageLoader.loadResources = function(urls, callback) {
                 var angle = (this.minAngle + Math.random() * (this.maxAngle - this.minAngle));
                 var magnitude = (this.minMagnitude + Math.random() * (this.maxMagnitude - this.minMagnitude));
 
-                particle.vx = Math.sin(angle) * magnitude;
-                particle.vy = Math.cos(angle) * magnitude;
+                particle.vx = -Math.cos(angle) * magnitude;
+                particle.vy = -Math.sin(angle) * magnitude;
             }
     };
 
@@ -2618,6 +2618,14 @@ ImageLoader.loadResources = function(urls, callback) {
 (function (global) {
     "use strict";
 
+    /**
+     * A Particle class. This extends DisplayObject and holds a simple physical
+     * model.
+     *
+     * @param material The material to use.
+     * @returns {*}
+     * @constructor
+     */
     var Particle = function (material) {
         var scope = this;
 
@@ -2641,7 +2649,16 @@ ImageLoader.loadResources = function(urls, callback) {
     Particle.prototype = new DisplayObject();
     Particle.prototype.constructor = Particle;
 
-    var ParticleEmitter = function (plugins, x, y) {
+    /**
+     * The ParticleEmitter class emits Particle objects, which are children.
+     *
+     * @param plugins
+     * @param x
+     * @param y
+     * @param maxParticles
+     * @constructor
+     */
+    var ParticleEmitter = function (plugins, x, y, maxParticles) {
         var scope = this;
 
         // extend DisplayObject
@@ -2650,7 +2667,7 @@ ImageLoader.loadResources = function(urls, callback) {
         var _plugins = plugins ? [].concat(plugins) : [],
             _helper = 0,
             _bufferIndex = 0,
-            _maxParticles = 1000,
+            _maxParticles = (undefined === maxParticles) ? 1000 : maxParticles,
             _particleBuffer = new Set(),    // particles do not need to be ordered
 
             // create a pool of particles
@@ -2677,18 +2694,24 @@ ImageLoader.loadResources = function(urls, callback) {
         scope.emissionRate = 5;
         scope.lifetime = 1000;
 
-        scope.withProperty = function(property, value) {
-            scope[property] = value;
-
-            return scope;
-        };
-
+        /**
+         * Adds a plugin dynamically.
+         *
+         * @param plugin
+         * @returns {*}
+         */
         scope.addPlugin = function(plugin) {
             _plugins.push(plugin);
 
             return scope;
         };
 
+        /**
+         * Removes a plugin dynamically.
+         *
+         * @param plugin
+         * @returns {*}
+         */
         scope.removePlugin = function(plugin) {
             var index = _plugins.indexOf(plugin);
             if (-1 !== index) {
@@ -2698,6 +2721,11 @@ ImageLoader.loadResources = function(urls, callback) {
             return scope;
         };
 
+        /**
+         * Called as part of boX's update loop.
+         *
+         * @param dt
+         */
         scope.update = function(dt) {
             applyPlugins(null, _plugins, "updateGlobal", dt);
 

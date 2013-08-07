@@ -70,8 +70,8 @@
                 var angle = (this.minAngle + Math.random() * (this.maxAngle - this.minAngle));
                 var magnitude = (this.minMagnitude + Math.random() * (this.maxMagnitude - this.minMagnitude));
 
-                particle.vx = Math.sin(angle) * magnitude;
-                particle.vy = Math.cos(angle) * magnitude;
+                particle.vx = -Math.cos(angle) * magnitude;
+                particle.vy = -Math.sin(angle) * magnitude;
             }
     };
 

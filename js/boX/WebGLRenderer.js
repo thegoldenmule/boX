@@ -13,24 +13,30 @@
         var scope = this;
 
         var _canvas,
-            _ctx;
+            _ctx,
+            _debugInformation = {};
 
-        scope.getWidth = function() {
-            return canvas.clientWidth;
-        };
-
-        scope.getHeight = function() {
-            return canvas.clientHeight;
-        };
-
+        /**
+         * Returns the CanvasDomElement being used.
+         *
+         * @returns {*}
+         */
         scope.getCanvas = function() {
             return _canvas;
         };
 
+        /**
+         * Returns the WebGL context eing used.
+         *
+         * @returns {*}
+         */
         scope.getContext = function() {
             return _ctx;
         };
 
+        /**
+         * Resizes the viewport based on a resize to the CanvasDomElement.
+         */
         scope.resize = (function() {
 
             var oldWidth = 0;
@@ -72,6 +78,8 @@
             // use the debug context if we want to see verbose logs
             if (window.isTwoDeeDebug) {
                 _ctx = WebGLDebugUtils.makeDebugContext(_ctx);
+
+                _debugInformation.isDebugCanvas = true;
             }
 
             _ctx.clearColor(1, 1, 1, 1);
@@ -93,6 +101,24 @@
 
     WebGLRenderer.prototype = {
         constructor:WebGLRenderer,
+
+        /**
+         * Returns the width of the viewport.
+         *
+         * @returns {number}
+         */
+        getWidth: function() {
+            return this.getCanvas().clientWidth;
+        },
+
+        /**
+         * Returns the height of the viewport.
+         *
+         * @returns {number}
+         */
+        getHeight: function() {
+            return this.getCanvas().clientHeight;
+        },
 
         /**
          * Appends a shader to the DOM. Definitions are objects in the form:
@@ -118,6 +144,9 @@
             }
         },
 
+        /**
+         * Called as part of the boX cycle, before any drawing is done.
+         */
         preUpdate: function() {
             this.resize();
 
@@ -125,6 +154,11 @@
             context.clear(context.COLOR_BUFFER_BIT | context.DEPTH_BUFFER_BIT);
         },
 
+        /**
+         * Draws a RenderBatch to the screen.
+         *
+         * @param renderBatch
+         */
         drawBatch: function(renderBatch) {
             var context = this.getContext();
 
@@ -179,6 +213,11 @@
             }
         },
 
+        /**
+         * Draws a single DisplayObject.
+         *
+         * @param displayObject
+         */
         drawDisplayObject: function(displayObject) {
             var context = this.getContext();
 
@@ -225,10 +264,9 @@
             displayObject.geometry.draw(context);
         },
 
-        drawParticleSystem: function(particleSystem) {
-
-        },
-
+        /**
+         * Draws a bounding box for a DisplayObject.
+         */
         drawBoundingBox: (function() {
             var bbShader = null;
 
@@ -262,6 +300,13 @@
         })()
     };
 
+    /**
+     * Composes a Color through the scene graph.
+     *
+     * @param displayObject
+     * @param out
+     * @returns {*}
+     */
     function composeColor(displayObject, out) {
         if (null !== displayObject.parent) {
             composeColor(displayObject.parent, out);
