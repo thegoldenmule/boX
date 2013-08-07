@@ -424,85 +424,6 @@ Engine.prototype = {
 };
 /**
  * Author: thegoldenmule
- * Date: 3/22/13
- */
-
-(function (global) {
-    "use strict";
-
-    var FontDefinition = function(xmlDefinition, image) {
-        this.xmlDefinition = xmlDefinition;
-        this.image = image;
-    };
-
-    var CharDefinition = function() {
-
-    };
-
-    CharDefinition.prototype = {
-        constructor: CharDefinition,
-
-        toString: function() {
-            return "[CharDefinition" +
-                " id: " + this.id +
-                " x: " + this.x +
-                " y: " + this.y +
-                " width: " + this.width +
-                " height: " + this.height +
-                " xoffset: " + this.xoffset +
-                " yoffset: " + this.yoffset +
-                " xadvance: " + this.xadvance +
-                " yadvance: " + this.yadvance +
-                " page: " + this.page +
-                " chnl: " + this.chnl + "]";
-        }
-    };
-
-    CharDefinition.FromXML = function(element) {
-        var def = new CharDefinition();
-        def.id = parseInt(element.getAttribute("id"), 10);
-        def.x = parseInt(element.getAttribute("x"), 10);
-        def.y = parseInt(element.getAttribute("y"), 10);
-        def.width = parseInt(element.getAttribute("width"), 10);
-        def.height = parseInt(element.getAttribute("height"), 10);
-        def.xoffset = parseInt(element.getAttribute("xoffset"), 10);
-        def.yoffset = parseInt(element.getAttribute("yoffset"), 10);
-        def.xadvance = parseInt(element.getAttribute("xadvance"), 10);
-        def.yadvance = parseInt(element.getAttribute("yadvance"), 10);
-        def.page = parseInt(element.getAttribute("page"), 10);
-        def.chnl = parseInt(element.getAttribute("chnl"), 10);
-
-        return def;
-    };
-
-    var Font = function () {
-        var scope = this;
-
-        scope.glyphIndex = [];
-
-        return scope;
-    };
-
-    Font.prototype = {
-        constructor: Font,
-
-        initialize: function(definition) {
-            // parse it!
-            var doc = XMLHelper.parse(definition.xmlDefinition);
-            var chars = doc.getElementsByTagName("char");
-            for (var i = 0, len = chars.length; i < len; i++) {
-                var def = CharDefinition.FromXML(chars[i]);
-                this.glyphIndex[def.id] = def;
-            }
-        }
-    };
-
-    // export
-    global.FontDefinition = FontDefinition;
-    global.Font = Font;
-})(this);
-/**
- * Author: thegoldenmule
  * Date: 3/11/13
  */
 
@@ -1354,7 +1275,7 @@ var Shader = (function() {
     var WebGLRenderer = function(canvas) {
         var scope = this;
 
-        var _canvas,
+        var _canvas = canvas,
             _ctx,
             _debugInformation = {};
 
@@ -2633,7 +2554,7 @@ ImageLoader.loadResources = function(urls, callback) {
         DisplayObject.call(scope, {color:new Color(1, 0, 0, 1)});
 
         scope.material = material;
-        scope.material.shader.setShaderProgramIds("particle-shader-vs", "particle-shader-fs");
+        scope.material.shader.setShaderProgramIds("texture-shader-vs", "texture-shader-fs");
 
         // basic physics model
         scope.vx = 0;
@@ -2891,6 +2812,121 @@ ImageLoader.loadResources = function(urls, callback) {
 
     global.ParticleEmitterGeometry = ParticleEmitterGeometry;
 })(this);
+/**
+ * Author: thegoldenmule
+ * Date: 3/22/13
+ */
+
+(function (global) {
+    "use strict";
+
+    var FontDefinition = function(xmlDefinition, image) {
+        this.xmlDefinition = xmlDefinition;
+        this.image = image;
+    };
+
+    var CharDefinition = function() {
+
+    };
+
+    CharDefinition.prototype = {
+        constructor: CharDefinition,
+
+        toString: function() {
+            return "[CharDefinition" +
+                " id: " + this.id +
+                " x: " + this.x +
+                " y: " + this.y +
+                " width: " + this.width +
+                " height: " + this.height +
+                " xoffset: " + this.xoffset +
+                " yoffset: " + this.yoffset +
+                " xadvance: " + this.xadvance +
+                " yadvance: " + this.yadvance +
+                " page: " + this.page +
+                " chnl: " + this.chnl + "]";
+        }
+    };
+
+    CharDefinition.FromXML = function(element) {
+        var def = new CharDefinition();
+        def.id = parseInt(element.getAttribute("id"), 10);
+        def.x = parseInt(element.getAttribute("x"), 10);
+        def.y = parseInt(element.getAttribute("y"), 10);
+        def.width = parseInt(element.getAttribute("width"), 10);
+        def.height = parseInt(element.getAttribute("height"), 10);
+        def.xoffset = parseInt(element.getAttribute("xoffset"), 10);
+        def.yoffset = parseInt(element.getAttribute("yoffset"), 10);
+        def.xadvance = parseInt(element.getAttribute("xadvance"), 10);
+        def.yadvance = parseInt(element.getAttribute("yadvance"), 10);
+        def.page = parseInt(element.getAttribute("page"), 10);
+        def.chnl = parseInt(element.getAttribute("chnl"), 10);
+
+        return def;
+    };
+
+    var Font = function () {
+        var scope = this;
+
+        scope.glyphIndex = [];
+
+        return scope;
+    };
+
+    Font.prototype = {
+        constructor: Font,
+
+        initialize: function(definition) {
+            // parse it!
+            var doc = XMLHelper.parse(definition.xmlDefinition);
+            var chars = doc.getElementsByTagName("char");
+            for (var i = 0, len = chars.length; i < len; i++) {
+                var def = CharDefinition.FromXML(chars[i]);
+                this.glyphIndex[def.id] = def;
+            }
+        }
+    };
+
+    // export
+    global.FontDefinition = FontDefinition;
+    global.Font = Font;
+})(this);
+/**
+ * Author: thegoldenmule
+ * Date: 8/7/13
+ */
+
+(function (global) {
+    "use strict";
+
+    var TextField = function (parameters) {
+        var scope = this;
+
+        if (undefined === parameters) {
+            parameters = {};
+        }
+
+        scope.font = (undefined === parameters.font) ? new Font() : parameters.font;
+
+        return scope;
+    };
+
+    TextField.prototype = {
+        constructor: TextField,
+
+        setText: function(text) {
+
+        },
+
+        appendText: function(text) {
+
+        }
+    };
+
+    global.TextField = TextField;
+
+})(this);
+
 function extend(subClass, superClass) {
     var F = function() {};
     F.prototype = superClass.prototype;

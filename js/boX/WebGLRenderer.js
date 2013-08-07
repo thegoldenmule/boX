@@ -12,7 +12,7 @@
     var WebGLRenderer = function(canvas) {
         var scope = this;
 
-        var _canvas,
+        var _canvas = canvas,
             _ctx,
             _debugInformation = {};
 

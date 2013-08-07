@@ -40,6 +40,8 @@ var main = (function() {
         emitter.lifetime = 2000;
         emitter.transform.scale.x = emitter.transform.scale.y = 10;
         emitter.transform.position.x = emitter.transform.position.y = 300;
+        emitter.alpha = 0.6;
+        emitter.tint = new Color(1, 0, 0);
         scene.root.addChild(emitter);
 
         engine.onPreUpdate.add(emitter.update);

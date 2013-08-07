@@ -21,7 +21,7 @@
         DisplayObject.call(scope, {color:new Color(1, 0, 0, 1)});
 
         scope.material = material;
-        scope.material.shader.setShaderProgramIds("particle-shader-vs", "particle-shader-fs");
+        scope.material.shader.setShaderProgramIds("texture-shader-vs", "texture-shader-fs");
 
         // basic physics model
         scope.vx = 0;
