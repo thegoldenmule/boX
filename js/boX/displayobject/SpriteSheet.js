@@ -59,16 +59,14 @@
             _normalizedFrameWidth = 1 / _totalFrameWidth,
             _normalizedFrameHeight = 1 / _totalFrameHeight,
 
-            _blendWeight = 0;
+            _blendCurve = new AnimationCurve();
 
-        that.setBlendWeight = function(normalizedValue) {
-            _blendWeight = Math.clamp(normalizedValue, 0, 1);
+        _blendCurve.addKey(new AnimationCurveKey(0, 0));
+        _blendCurve.addKey(new AnimationCurveKey(1, 1));
+        _blendCurve.easingFunction = Easing.Quadratic.In;
 
-            that.material.shader.setUniformFloat("uBlendWeight", _blendWeight);
-        };
-
-        that.getBlendWeight = function() {
-            return _blendWeight;
+        that.getBlendCurve = function() {
+            return _blendCurve;
         };
 
         that.addAnimation = function(animationData) {
@@ -141,8 +139,9 @@
             var newFrame = Math.floor(_currentTimeMS / msPerFrame) % animation.animationLength;
 
             // set the blend uniform
-            that.material.shader.setUniformFloat("uFutureBlendScalar",
-                (_currentTimeMS % msPerFrame) / msPerFrame);
+            that.material.shader.setUniformFloat(
+                "uFutureBlendScalar",
+                _blendCurve.evaluate((_currentTimeMS % msPerFrame) / msPerFrame));
 
             // did we switch frames?
             if (_currentFrame === newFrame) {

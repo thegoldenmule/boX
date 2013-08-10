@@ -67,7 +67,7 @@
 
             // use resolution
             this.context.beginPath();
-            this.context.moveTo(0, this._animationCurve.evaluate(0) * this.canvas.height);
+            this.context.moveTo(0, this.canvas.height - this._animationCurve.evaluate(0) * this.canvas.height);
 
             var keys = this._animationCurve.getKeys();
             for (var i = 0, len = keys.length; i < len - 1; i++) {
@@ -104,14 +104,14 @@
                 var y = curve.evaluate(x);
                 context.lineTo(
                     x * canvas.width,
-                    y * canvas.height
+                    canvas.height - y * canvas.height
                 );
             }
         }
 
         context.lineTo(
             b.time * canvas.width,
-            b.value * canvas.height
+            canvas.height - b.value * canvas.height
         );
     }
 

@@ -139,10 +139,6 @@ var main = (function () {
         });
         wyvernShadow.transform.position.x = -18;
 
-        var blend = 0.05;
-        wyvern.setBlendWeight(blend);
-        wyvernShadow.setBlendWeight(blend);
-
         spriteSheetScheduler.addSpriteSheet(wyvern);
         spriteSheetScheduler.addSpriteSheet(wyvernShadow);
 

@@ -5288,13 +5288,12 @@ if(typeof(exports) !== 'undefined') {
 
                 "uniform sampler2D uMainTextureSampler;" +
                 "uniform float uFutureBlendScalar;" +
-                "uniform float uBlendWeight;" +
 
                 "void main(void) {" +
                     "vec4 currentFrame = texture2D(uMainTextureSampler, vUV);" +
                     "vec4 futureFrame = texture2D(uMainTextureSampler, vec2(vVertexColor.xy));" +
-                    "float blendWeight = uBlendWeight * uFutureBlendScalar;" +
-                    "gl_FragColor = futureFrame * blendWeight + currentFrame * (1.0 - blendWeight);" +
+
+                    "gl_FragColor = futureFrame * uFutureBlendScalar + currentFrame * (1.0 - uFutureBlendScalar);" +
                 "}"
         };
 
@@ -6842,7 +6841,31 @@ var Shader = (function() {
     "use strict";
 
     /**
-     * TODO: LICENSE
+
+     The MIT License
+
+     Copyright (c) 2010-2012 Tween.js authors.
+
+     Easing equations Copyright (c) 2001 Robert Penner http://robertpenner.com/easing/
+
+     Permission is hereby granted, free of charge, to any person obtaining a copy
+     of this software and associated documentation files (the "Software"), to deal
+     in the Software without restriction, including without limitation the rights
+     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     copies of the Software, and to permit persons to whom the Software is
+     furnished to do so, subject to the following conditions:
+
+     The above copyright notice and this permission notice shall be included in
+     all copies or substantial portions of the Software.
+
+     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+     THE SOFTWARE.
+
      */
     var Easing = {
 
@@ -7623,16 +7646,14 @@ var Shader = (function() {
             _normalizedFrameWidth = 1 / _totalFrameWidth,
             _normalizedFrameHeight = 1 / _totalFrameHeight,
 
-            _blendWeight = 0;
+            _blendCurve = new AnimationCurve();
 
-        that.setBlendWeight = function(normalizedValue) {
-            _blendWeight = Math.clamp(normalizedValue, 0, 1);
+        _blendCurve.addKey(new AnimationCurveKey(0, 0));
+        _blendCurve.addKey(new AnimationCurveKey(1, 1));
+        _blendCurve.easingFunction = Easing.Quadratic.In;
 
-            that.material.shader.setUniformFloat("uBlendWeight", _blendWeight);
-        };
-
-        that.getBlendWeight = function() {
-            return _blendWeight;
+        that.getBlendCurve = function() {
+            return _blendCurve;
         };
 
         that.addAnimation = function(animationData) {
@@ -7705,8 +7726,9 @@ var Shader = (function() {
             var newFrame = Math.floor(_currentTimeMS / msPerFrame) % animation.animationLength;
 
             // set the blend uniform
-            that.material.shader.setUniformFloat("uFutureBlendScalar",
-                (_currentTimeMS % msPerFrame) / msPerFrame);
+            that.material.shader.setUniformFloat(
+                "uFutureBlendScalar",
+                _blendCurve.evaluate((_currentTimeMS % msPerFrame) / msPerFrame));
 
             // did we switch frames?
             if (_currentFrame === newFrame) {
@@ -8728,4 +8750,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Sat, 10 Aug 2013 09:59:48 -0700";
+var __buildTimestamp = "Sat, 10 Aug 2013 13:45:44 -0700";

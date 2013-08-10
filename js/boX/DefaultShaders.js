@@ -138,13 +138,12 @@
 
                 "uniform sampler2D uMainTextureSampler;" +
                 "uniform float uFutureBlendScalar;" +
-                "uniform float uBlendWeight;" +
 
                 "void main(void) {" +
                     "vec4 currentFrame = texture2D(uMainTextureSampler, vUV);" +
                     "vec4 futureFrame = texture2D(uMainTextureSampler, vec2(vVertexColor.xy));" +
-                    "float blendWeight = uBlendWeight * uFutureBlendScalar;" +
-                    "gl_FragColor = futureFrame * blendWeight + currentFrame * (1.0 - blendWeight);" +
+
+                    "gl_FragColor = futureFrame * uFutureBlendScalar + currentFrame * (1.0 - uFutureBlendScalar);" +
                 "}"
         };
 
