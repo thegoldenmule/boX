@@ -9,6 +9,7 @@
  * ParticlePropertyAnimator
  * ScaleAnimator
  * AlphaAnimator
+ * RotationAnimator
  *
  * @author thegoldenmule
  */
@@ -54,6 +55,27 @@
                 particle.transform.position.x += this.innerRadius * Math.sin(randomAngle);
                 particle.transform.position.y += this.innerRadius * Math.cos(randomAngle);
             }
+        }
+    };
+
+    /**
+     * Rotation plugin. Chooses a random rotation for each particle between min and max.
+     *
+     * @param min
+     * @param max
+     *
+     * @constructor
+     */
+    global.particle.Rotation = function(min, max) {
+        this.min = undefined === min ? 0 : min;
+        this.max = undefined === max ? Math.PI * 2 : max;
+    };
+
+    global.particle.Rotation.prototype = {
+        constructor: global.particle.Rotation,
+
+        initialize: function(emitter, particle) {
+            particle.transform.rotationInRadians = this.min + Math.random() * (this.max - this.min);
         }
     };
 
@@ -197,6 +219,36 @@
      */
     global.particle.AlphaAnimator = function(curve, scale) {
         return new global.particle.ParticlePropertyAnimator("alpha", curve, scale);
+    };
+
+    /**
+     * Animates a particle's rotation.
+     *
+     * @param curve
+     * @param scale
+     */
+    global.particle.RotationAnimator = (function() {
+        var id = 0;
+
+        return function(curve, scale) {
+            this.__guid = "__rotationRate" + id++;
+
+            this.curve = curve;
+            this.scale = scale;
+        };
+    })();
+
+    global.particle.RotationAnimator.prototype = {
+        constructor: global.particle.RotationAnimator,
+
+        initialize: function(emitter, particle) {
+            particle[this.__guid] = particle.transform.rotationInRadians;
+        },
+
+        update: function(emitter, particle, dt) {
+            particle.transform.rotationInRadians =
+                particle[this.__guid] + this.scale * this.curve.evaluate(particle.elapsedTime / particle.lifetime);
+        }
     };
 
 })(this);

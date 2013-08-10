@@ -31,20 +31,26 @@ var main = (function() {
             * Animate alpha.
          */
 
-        // create the alpha animation
+        // create the scale curve from 0.2 -> 1
+        var _scaleCurve = new AnimationCurve();
+        _scaleCurve.getKeys()[0].value = 0.2;
+
+        // create the alpha curve, but reverse it (from 1 -> 0)
         var _alphaCurve = new AnimationCurve();
         _alphaCurve.getKeys()[0].value = 1;
         _alphaCurve.getKeys()[1].value = 0;
 
         var emitter = new ParticleEmitter([
             new particle.Position(0, 0, 2),
+            new particle.Rotation(),
             new particle.Velocity(
                 Math.PI / 4,
                 3 * Math.PI / 4,
                 0.3, 0.7),
             new particle.Acceleration(0, -0.0098),
-            new particle.ScaleAnimator(new AnimationCurve(), 20),
-            new particle.AlphaAnimator(_alphaCurve)
+            new particle.ScaleAnimator(_scaleCurve, 20),
+            new particle.AlphaAnimator(_alphaCurve),
+            new particle.RotationAnimator(new AnimationCurve(), 2)
         ]);
         emitter.emissionRate = 2;
         emitter.lifetime = 2000;

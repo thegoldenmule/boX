@@ -8039,6 +8039,7 @@ ImageLoader.loadResources = function(urls, callback) {
  * ParticlePropertyAnimator
  * ScaleAnimator
  * AlphaAnimator
+ * RotationAnimator
  *
  * @author thegoldenmule
  */
@@ -8084,6 +8085,27 @@ ImageLoader.loadResources = function(urls, callback) {
                 particle.transform.position.x += this.innerRadius * Math.sin(randomAngle);
                 particle.transform.position.y += this.innerRadius * Math.cos(randomAngle);
             }
+        }
+    };
+
+    /**
+     * Rotation plugin. Chooses a random rotation for each particle between min and max.
+     *
+     * @param min
+     * @param max
+     *
+     * @constructor
+     */
+    global.particle.Rotation = function(min, max) {
+        this.min = undefined === min ? 0 : min;
+        this.max = undefined === max ? Math.PI * 2 : max;
+    };
+
+    global.particle.Rotation.prototype = {
+        constructor: global.particle.Rotation,
+
+        initialize: function(emitter, particle) {
+            particle.transform.rotationInRadians = this.min + Math.random() * (this.max - this.min);
         }
     };
 
@@ -8229,6 +8251,36 @@ ImageLoader.loadResources = function(urls, callback) {
         return new global.particle.ParticlePropertyAnimator("alpha", curve, scale);
     };
 
+    /**
+     * Animates a particle's rotation.
+     *
+     * @param curve
+     * @param scale
+     */
+    global.particle.RotationAnimator = (function() {
+        var id = 0;
+
+        return function(curve, scale) {
+            this.__guid = "__rotationRate" + id++;
+
+            this.curve = curve;
+            this.scale = scale;
+        };
+    })();
+
+    global.particle.RotationAnimator.prototype = {
+        constructor: global.particle.RotationAnimator,
+
+        initialize: function(emitter, particle) {
+            particle[this.__guid] = particle.transform.rotationInRadians;
+        },
+
+        update: function(emitter, particle, dt) {
+            particle.transform.rotationInRadians =
+                particle[this.__guid] + this.scale * this.curve.evaluate(particle.elapsedTime / particle.lifetime);
+        }
+    };
+
 })(this);
 /**
  * Author: thegoldenmule
@@ -8251,6 +8303,9 @@ ImageLoader.loadResources = function(urls, callback) {
 
         // extend DisplayObject
         DisplayObject.call(scope, {color:new Color(1, 0, 0, 1)});
+
+        // set the anchor point to the center
+        scope.transform.anchorPoint.x = scope.transform.anchorPoint.y = 1;
 
         scope.material = material;
         scope.material.shader.setShaderProgramIds("texture-shader-vs", "texture-shader-fs");
@@ -8817,4 +8872,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Sat, 10 Aug 2013 14:27:08 -0700";
+var __buildTimestamp = "Sat, 10 Aug 2013 15:00:02 -0700";
