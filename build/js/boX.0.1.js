@@ -6705,6 +6705,498 @@ var Shader = (function() {
     global.WebGLRenderer = WebGLRenderer;
 })(this);
 /**
+ * Author: thegoldenmule
+ * Date: 8/9/13
+ */
+
+(function (global) {
+    "use strict";
+
+    var AnimationCurveKey = function(time, value) {
+        var scope = this;
+
+        scope.time = time;
+        scope.value = value;
+
+        return scope;
+    };
+
+    var AnimationCurve = function () {
+        var scope = this;
+
+        var _keys = [];
+
+        /**
+         * Defines the ease method to use.
+         *
+         * @type {*}
+         */
+        scope.easingFunction = Easing.Quadratic.In;
+
+        /**
+         * Retrieves a copy of the keys array.
+         *
+         * @returns {Array}
+         */
+        scope.getKeys = function() {
+            return _keys.slice(0);
+        };
+
+        /**
+         * Adds a key time.
+         *
+         * @param key An AnimationCurveKey.
+         */
+        scope.addKey = function(key) {
+            // simple sort on insert
+            for (var i = 0, len = _keys.length - 1; i < len; i++) {
+                if (_keys[i].time < key.time &&
+                    _keys[i + 1].time > key.time) {
+                    _keys.splice(i + 1, 0, key);
+
+                    return;
+                }
+            }
+
+            _keys.push(key);
+        };
+
+        /**
+         * Removes a key time.
+         *
+         * @param key An AnimationCurveKey.
+         */
+        scope.removeKey = function(key) {
+            // remove
+            var index = _keys.indexOf(key);
+            if (-1 !== index) {
+                _keys.splice(index, 1);
+            }
+        };
+
+        /**
+         * Evaluates the animation curve at a normalized parameter t.
+         *
+         * @param t
+         */
+        scope.evaluate = function(t) {
+            // clamp input
+            t = Math.clamp(t, 0, 1);
+
+            // find the two keys to evaluate between
+            var len = _keys.length;
+            if (len < 2) {
+                return 0;
+            }
+
+            // TODO: we may be able to speed this up by using the index we last
+            // used instead of starting with 0.
+            var a, b;
+            for (var i = 0; i < len - 1; i++) {
+                a = _keys[i];
+                b = _keys[i + 1];
+
+                if (a.time <= t &&
+                    b.time >= t) {
+                    return interpolate(a.value, b.value, (t - a.time) / (b.time - a.time));
+                }
+            }
+
+            // in this case, there is no key defined after the t passed in,
+            // so clamp to the last keys value
+            return _keys[len - 1].value;
+        };
+
+        /**
+         * Linearly interpolates using the easing function (which is possibly
+         * non-linear).
+         *
+         * @param a
+         * @param b
+         * @param t
+         * @returns {number}
+         */
+        function interpolate(a, b, t) {
+            return a + scope.easingFunction(t) * (b - a);
+        }
+
+        return scope;
+    };
+
+    AnimationCurve.prototype = {
+        constructor: AnimationCurve
+    };
+
+    // export
+    global.AnimationCurveKey = AnimationCurveKey;
+    global.AnimationCurve = AnimationCurve;
+
+})(this);
+
+/**
+ * Author: thegoldenmule
+ * Date: 8/9/13
+ */
+
+(function (global) {
+    "use strict";
+
+    /**
+     * TODO: LICENSE
+     */
+    var Easing = {
+
+        Linear: {
+
+            None: function ( k ) {
+
+                return k;
+
+            }
+
+        },
+
+        Quadratic: {
+
+            In: function ( k ) {
+
+                return k * k;
+
+            },
+
+            Out: function ( k ) {
+
+                return k * ( 2 - k );
+
+            },
+
+            InOut: function ( k ) {
+
+                if ( ( k *= 2 ) < 1 ) {
+                    return 0.5 * k * k;
+                }
+
+                return - 0.5 * ( --k * ( k - 2 ) - 1 );
+
+            }
+
+        },
+
+        Cubic: {
+
+            In: function ( k ) {
+
+                return k * k * k;
+
+            },
+
+            Out: function ( k ) {
+
+                return --k * k * k + 1;
+
+            },
+
+            InOut: function ( k ) {
+
+                if ( ( k *= 2 ) < 1 ) {
+                    return 0.5 * k * k * k;
+                }
+
+                return 0.5 * ( ( k -= 2 ) * k * k + 2 );
+
+            }
+
+        },
+
+        Quartic: {
+
+            In: function ( k ) {
+
+                return k * k * k * k;
+
+            },
+
+            Out: function ( k ) {
+
+                return 1 - ( --k * k * k * k );
+
+            },
+
+            InOut: function ( k ) {
+
+                if ( ( k *= 2 ) < 1) {
+                    return 0.5 * k * k * k * k;
+                }
+
+                return - 0.5 * ( ( k -= 2 ) * k * k * k - 2 );
+
+            }
+
+        },
+
+        Quintic: {
+
+            In: function ( k ) {
+
+                return k * k * k * k * k;
+
+            },
+
+            Out: function ( k ) {
+
+                return --k * k * k * k * k + 1;
+
+            },
+
+            InOut: function ( k ) {
+
+                if ( ( k *= 2 ) < 1 ) {
+                    return 0.5 * k * k * k * k * k;
+                }
+
+                return 0.5 * ( ( k -= 2 ) * k * k * k * k + 2 );
+
+            }
+
+        },
+
+        Sinusoidal: {
+
+            In: function ( k ) {
+
+                return 1 - Math.cos( k * Math.PI / 2 );
+
+            },
+
+            Out: function ( k ) {
+
+                return Math.sin( k * Math.PI / 2 );
+
+            },
+
+            InOut: function ( k ) {
+
+                return 0.5 * ( 1 - Math.cos( Math.PI * k ) );
+
+            }
+
+        },
+
+        Exponential: {
+
+            In: function ( k ) {
+
+                return k === 0 ? 0 : Math.pow( 1024, k - 1 );
+
+            },
+
+            Out: function ( k ) {
+
+                return k === 1 ? 1 : 1 - Math.pow( 2, - 10 * k );
+
+            },
+
+            InOut: function ( k ) {
+
+                if ( k === 0 ) {
+                    return 0;
+                }
+
+                if ( k === 1 ) {
+                    return 1;
+                }
+
+                if ( ( k *= 2 ) < 1 ) {
+                    return 0.5 * Math.pow( 1024, k - 1 );
+                }
+
+                return 0.5 * ( - Math.pow( 2, - 10 * ( k - 1 ) ) + 2 );
+
+            }
+
+        },
+
+        Circular: {
+
+            In: function ( k ) {
+
+                return 1 - Math.sqrt( 1 - k * k );
+
+            },
+
+            Out: function ( k ) {
+
+                return Math.sqrt( 1 - ( --k * k ) );
+
+            },
+
+            InOut: function ( k ) {
+
+                if ( ( k *= 2 ) < 1) {
+                    return - 0.5 * ( Math.sqrt( 1 - k * k) - 1);
+                }
+
+                return 0.5 * ( Math.sqrt( 1 - ( k -= 2) * k) + 1);
+
+            }
+
+        },
+
+        Elastic: {
+
+            In: function ( k ) {
+
+                var s, a = 0.1, p = 0.4;
+                if ( k === 0 ) {
+                    return 0;
+                }
+
+                if ( k === 1 ) {
+                    return 1;
+                }
+
+                if ( !a || a < 1 )
+                {
+                    a = 1; s = p / 4;
+                }
+                else {
+                    s = p * Math.asin( 1 / a ) / ( 2 * Math.PI );
+                }
+
+                return - ( a * Math.pow( 2, 10 * ( k -= 1 ) ) * Math.sin( ( k - s ) * ( 2 * Math.PI ) / p ) );
+
+            },
+
+            Out: function ( k ) {
+
+                var s, a = 0.1, p = 0.4;
+                if ( k === 0 ) {
+                    return 0;
+                }
+
+                if ( k === 1 ) {
+                    return 1;
+                }
+
+                if ( !a || a < 1 )
+                {
+                    a = 1; s = p / 4;
+                }
+                else {
+                    s = p * Math.asin( 1 / a ) / ( 2 * Math.PI );
+                }
+
+                return ( a * Math.pow( 2, - 10 * k) * Math.sin( ( k - s ) * ( 2 * Math.PI ) / p ) + 1 );
+
+            },
+
+            InOut: function ( k ) {
+
+                var s, a = 0.1, p = 0.4;
+                if ( k === 0 ) {
+                    return 0;
+                }
+
+                if ( k === 1 ) {
+                    return 1;
+                }
+
+                if ( !a || a < 1 )
+                {
+                    a = 1; s = p / 4;
+                }
+                else {
+                    s = p * Math.asin( 1 / a ) / ( 2 * Math.PI );
+                }
+
+                if ( ( k *= 2 ) < 1 ) {
+                    return - 0.5 * ( a * Math.pow( 2, 10 * ( k -= 1 ) ) * Math.sin( ( k - s ) * ( 2 * Math.PI ) / p ) );
+                }
+
+                return a * Math.pow( 2, -10 * ( k -= 1 ) ) * Math.sin( ( k - s ) * ( 2 * Math.PI ) / p ) * 0.5 + 1;
+
+            }
+
+        },
+
+        Back: {
+
+            In: function ( k ) {
+
+                var s = 1.70158;
+                return k * k * ( ( s + 1 ) * k - s );
+
+            },
+
+            Out: function ( k ) {
+
+                var s = 1.70158;
+                return --k * k * ( ( s + 1 ) * k + s ) + 1;
+
+            },
+
+            InOut: function ( k ) {
+
+                var s = 1.70158 * 1.525;
+                if ( ( k *= 2 ) < 1 ) {
+                    return 0.5 * ( k * k * ( ( s + 1 ) * k - s ) );
+                }
+
+                return 0.5 * ( ( k -= 2 ) * k * ( ( s + 1 ) * k + s ) + 2 );
+
+            }
+
+        },
+
+        Bounce: {
+
+            In: function ( k ) {
+
+                return 1 - TWEEN.Easing.Bounce.Out( 1 - k );
+
+            },
+
+            Out: function ( k ) {
+
+                if ( k < ( 1 / 2.75 ) ) {
+
+                    return 7.5625 * k * k;
+
+                } else if ( k < ( 2 / 2.75 ) ) {
+
+                    return 7.5625 * ( k -= ( 1.5 / 2.75 ) ) * k + 0.75;
+
+                } else if ( k < ( 2.5 / 2.75 ) ) {
+
+                    return 7.5625 * ( k -= ( 2.25 / 2.75 ) ) * k + 0.9375;
+
+                } else {
+
+                    return 7.5625 * ( k -= ( 2.625 / 2.75 ) ) * k + 0.984375;
+
+                }
+
+            },
+
+            InOut: function ( k ) {
+
+                if ( k < 0.5 ) {
+                    return TWEEN.Easing.Bounce.In( k * 2 ) * 0.5;
+                }
+
+                return TWEEN.Easing.Bounce.Out( k * 2 - 1 ) * 0.5 + 0.5;
+
+            }
+
+        }
+
+    };
+
+    global.Easing = Easing;
+
+})(this);
+
+/**
  * Quick and dirty object pool implementation. Does not grow.
  *
  * Author: thegoldenmule
@@ -8236,4 +8728,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Wed, 7 Aug 2013 09:04:35 -0700";
+var __buildTimestamp = "Sat, 10 Aug 2013 09:59:48 -0700";
