@@ -5541,6 +5541,34 @@ Engine.prototype = {
 };
 /**
  * Author: thegoldenmule
+ * Date: 8/10/13
+ */
+
+(function (global) {
+    "use strict";
+
+    /**
+     * Curry function.
+     *
+     * @returns {*}
+     */
+    global.Function.prototype.curry = function () {
+        var array = Array.prototype.slice.call(arguments);
+
+        if (array.length < 1) {
+            return this;
+        }
+
+        var _method = this;
+        return function() {
+            return _method.apply(this, array.concat(Array.prototype.slice.call(arguments)));
+        };
+    };
+
+})(this);
+
+/**
+ * Author: thegoldenmule
  * Date: 3/11/13
  */
 
@@ -6723,7 +6751,10 @@ var Shader = (function() {
     var AnimationCurve = function () {
         var scope = this;
 
-        var _keys = [];
+        var _keys = [
+            new AnimationCurveKey(0, 0),
+            new AnimationCurveKey(1, 1)
+        ];
 
         /**
          * Defines the ease method to use.
@@ -7648,8 +7679,6 @@ var Shader = (function() {
 
             _blendCurve = new AnimationCurve();
 
-        _blendCurve.addKey(new AnimationCurveKey(0, 0));
-        _blendCurve.addKey(new AnimationCurveKey(1, 1));
         _blendCurve.easingFunction = Easing.Quadratic.In;
 
         that.getBlendCurve = function() {
@@ -8002,8 +8031,14 @@ ImageLoader.loadResources = function(urls, callback) {
 /**
  * Default particle plugins:
  *
- * Position, Velocity, Acceleration, Lifetime,
- * EmissionRateFade, Attractor.
+ * Position
+ * Velocity
+ * Acceleration
+ * Lifetime
+ * Attractor
+ * ParticlePropertyAnimator
+ * ScaleAnimator
+ * AlphaAnimator
  *
  * @author thegoldenmule
  */
@@ -8038,17 +8073,18 @@ ImageLoader.loadResources = function(urls, callback) {
     };
 
     global.particle.Position.prototype = {
-        initialize:
-            function(emitter, particle) {
-                particle.transform.position.x = this.x + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
-                particle.transform.position.y = this.y + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
+        constructor: global.particle.Position,
 
-                if (0 !== this.innerRadius) {
-                    var randomAngle = Math.random() * 2 * Math.PI;
-                    particle.transform.position.x += this.innerRadius * Math.sin(randomAngle);
-                    particle.transform.position.y += this.innerRadius * Math.cos(randomAngle);
-                }
+        initialize: function(emitter, particle) {
+            particle.transform.position.x = this.x + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
+            particle.transform.position.y = this.y + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
+
+            if (0 !== this.innerRadius) {
+                var randomAngle = Math.random() * 2 * Math.PI;
+                particle.transform.position.x += this.innerRadius * Math.sin(randomAngle);
+                particle.transform.position.y += this.innerRadius * Math.cos(randomAngle);
             }
+        }
     };
 
     /**
@@ -8065,15 +8101,16 @@ ImageLoader.loadResources = function(urls, callback) {
     };
 
     global.particle.Velocity.prototype = {
-        initialize:
-            function(emitter, particle) {
-                // pick a random angle
-                var angle = (this.minAngle + Math.random() * (this.maxAngle - this.minAngle));
-                var magnitude = (this.minMagnitude + Math.random() * (this.maxMagnitude - this.minMagnitude));
+        constructor: global.particle.Velocity,
 
-                particle.vx = -Math.cos(angle) * magnitude;
-                particle.vy = -Math.sin(angle) * magnitude;
-            }
+        initialize: function(emitter, particle) {
+            // pick a random angle
+            var angle = (this.minAngle + Math.random() * (this.maxAngle - this.minAngle));
+            var magnitude = (this.minMagnitude + Math.random() * (this.maxMagnitude - this.minMagnitude));
+
+            particle.vx = -Math.cos(angle) * magnitude;
+            particle.vy = -Math.sin(angle) * magnitude;
+        }
     };
 
     /**
@@ -8088,11 +8125,12 @@ ImageLoader.loadResources = function(urls, callback) {
     };
 
     global.particle.Acceleration.prototype = {
-        initialize:
-            function(emitter, particle) {
-                particle.ax = this.x;
-                particle.ay = this.y;
-            }
+        constructor: global.particle.Acceleration,
+
+        initialize: function(emitter, particle) {
+            particle.ax = this.x;
+            particle.ay = this.y;
+        }
     };
 
     /**
@@ -8106,36 +8144,11 @@ ImageLoader.loadResources = function(urls, callback) {
     };
 
     global.particle.Lifetime.prototype = {
-        initialize:
-            function(emitter, particle) {
-                particle.lifetime = (this.min + Math.random() * (this.max - this.min));
-            }
-    };
+        constructor: global.particle.Lifetime,
 
-    /**
-     * EmissionRateFade plugin.
-     *
-     * This tweens the emitter's emission rate from start to finish in time.
-     */
-    global.particle.EmissionRateFade = function(start, finish, time) {
-        this.start = start;
-        this.finish = finish;
-        this.time = time;
-
-        this.elapsed = 0;
-    };
-
-    global.particle.EmissionRateFade.prototype = {
-        updateGlobal:
-            function(emitter, particle, dt) {
-                this.elapsed += dt;
-
-                if (this.elapsed >= this.time) {
-                    emitter.emissionRate = this.finish;
-                } else {
-                    emitter.emissionRate = ~~(this.start + (this.elapsed / this.time) * (this.finish - this.start));
-                }
-            }
+        initialize: function(emitter, particle) {
+            particle.lifetime = (this.min + Math.random() * (this.max - this.min));
+        }
     };
 
     /**
@@ -8150,17 +8163,71 @@ ImageLoader.loadResources = function(urls, callback) {
         this.amount = amount;
     };
 
-    global.particle.Attractor.prototype = (function() {
-        var G = 1; // teehee
+    global.particle.Attractor.prototype = {
+        constructor: global.particle.Attractor,
 
-        return {
-            update:
-                function(emitter, particle) {
-                    particle.ax = this.x - particle.transform.position.x / this.amount;
-                    particle.ay = this.y - particle.transform.position.y / this.amount;
-                }
-        };
-    })();
+        update: function(emitter, particle) {
+            particle.ax = this.x - particle.transform.position.x / this.amount;
+            particle.ay = this.y - particle.transform.position.y / this.amount;
+        }
+    };
+
+    /**
+     * Animates a property on Particle.
+     *
+     * @param propName
+     * @param curve
+     * @param scale
+     * @constructor
+     */
+    global.particle.ParticlePropertyAnimator = function(propName, curve, scale) {
+        this.propName = propName;
+        this.curve = curve;
+        this.scale = scale;
+    };
+
+    global.particle.ParticlePropertyAnimator.prototype = {
+        constructor: global.particle.ParticlePropertyAnimator,
+
+        update: function(emitter, particle) {
+            particle[this.propName] = this.scale = this.curve.evaluate(particle.elapsedTime / particle.lifetime);
+        }
+    };
+
+    /**
+     * Animates a Particle's scale.
+     *
+     * @param curve The AnimationCurve instance.
+     * @param scale A scalar to multiply the AnimationCurve by.
+     *
+     * @constructor
+     */
+    global.particle.ScaleAnimator = function(curve, scale) {
+        this.curve = curve;
+        this.scale = scale;
+    };
+
+    global.particle.ScaleAnimator.prototype = {
+        constructor: global.particle.ScaleAnimator,
+
+        update: function(emitter, particle) {
+            var scale = this.scale * this.curve.evaluate(particle.elapsedTime / particle.lifetime);
+
+            particle.transform.scale.x = particle.transform.scale.y = scale;
+        }
+    };
+
+    /**
+     * Animates a particle's alpha.
+     *
+     * @param curve
+     * @param scale
+     *
+     * @constructor
+     */
+    global.particle.AlphaAnimator = function(curve, scale) {
+        return new global.particle.ParticlePropertyAnimator("alpha", curve, scale);
+    };
 
 })(this);
 /**
@@ -8750,4 +8817,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Sat, 10 Aug 2013 13:45:44 -0700";
+var __buildTimestamp = "Sat, 10 Aug 2013 14:27:08 -0700";

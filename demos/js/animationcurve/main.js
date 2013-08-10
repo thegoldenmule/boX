@@ -23,11 +23,9 @@
 
         // set up curve editor
         var animationCurve = new AnimationCurve();
-        animationCurve.addKey(new AnimationCurveKey(0, 0));
         for (var i = 0; i < 3; i++) {
             animationCurve.addKey(new AnimationCurveKey(Math.random(), Math.random()));
         }
-        animationCurve.addKey(new AnimationCurveKey(1, 1));
         animationCurve.easingFunction = Easing.Quadratic.InOut;
 
         var animationCurveEditor = new AnimationCurveEditor();

@@ -18,7 +18,10 @@
     var AnimationCurve = function () {
         var scope = this;
 
-        var _keys = [];
+        var _keys = [
+            new AnimationCurveKey(0, 0),
+            new AnimationCurveKey(1, 1)
+        ];
 
         /**
          * Defines the ease method to use.

@@ -61,8 +61,6 @@
 
             _blendCurve = new AnimationCurve();
 
-        _blendCurve.addKey(new AnimationCurveKey(0, 0));
-        _blendCurve.addKey(new AnimationCurveKey(1, 1));
         _blendCurve.easingFunction = Easing.Quadratic.In;
 
         that.getBlendCurve = function() {

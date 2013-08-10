@@ -26,21 +26,29 @@ var main = (function() {
         Create a new emitter.
             * Spawn particles within 2 units of (0, 0).
             * Give each particle a velocity given in polar coordinates.
-            * Apply an acceleration due to gravity.
+            * Apply some acceleration to gravity.
+            * Animate scale.
+            * Animate alpha.
          */
+
+        // create the alpha animation
+        var _alphaCurve = new AnimationCurve();
+        _alphaCurve.getKeys()[0].value = 1;
+        _alphaCurve.getKeys()[1].value = 0;
+
         var emitter = new ParticleEmitter([
             new particle.Position(0, 0, 2),
             new particle.Velocity(
                 Math.PI / 4,
                 3 * Math.PI / 4,
                 0.3, 0.7),
-            new particle.Acceleration(0, 0.0098)
+            new particle.Acceleration(0, -0.0098),
+            new particle.ScaleAnimator(new AnimationCurve(), 20),
+            new particle.AlphaAnimator(_alphaCurve)
         ]);
-        emitter.emissionRate = 1;
+        emitter.emissionRate = 2;
         emitter.lifetime = 2000;
-        emitter.transform.scale.x = emitter.transform.scale.y = 10;
         emitter.transform.position.x = emitter.transform.position.y = 300;
-        emitter.alpha = 0.6;
         emitter.tint = new Color(1, 0, 0);
         scene.root.addChild(emitter);
 
