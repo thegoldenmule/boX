@@ -51,7 +51,7 @@
         };
 
         function getChildrenRecursively(node, list, batches, depthMin, depthMax) {
-            var children = node.children;
+            var children = node._children;
             var len = children.length;
             if (0 === len) {
                 return;

@@ -787,7 +787,7 @@ Engine.prototype = {
         };
 
         function getChildrenRecursively(node, list, batches, depthMin, depthMax) {
-            var children = node.children;
+            var children = node._children;
             var len = children.length;
             if (0 === len) {
                 return;
@@ -1598,8 +1598,8 @@ var Shader = (function() {
      * @returns {*}
      */
     function composeColor(displayObject, out) {
-        if (null !== displayObject.parent) {
-            composeColor(displayObject.parent, out);
+        if (displayObject._parent) {
+            composeColor(displayObject._parent, out);
         }
 
         out[0] *= displayObject.tint.r;
@@ -2302,8 +2302,8 @@ var Shader = (function() {
     function composeTransforms(displayObject, out) {
         mat4.identity(out);
 
-        if (null !== displayObject.parent) {
-            appendTransform(displayObject.parent, out);
+        if (null !== displayObject._parent) {
+            appendTransform(displayObject._parent, out);
         }
 
         mat4.multiply(out, out, displayObject.transform.recalculateMatrix());
@@ -2312,8 +2312,8 @@ var Shader = (function() {
     }
 
     function appendTransform(displayObject, out) {
-        if (null !== displayObject.parent) {
-            appendTransform(displayObject.parent, out);
+        if (null !== displayObject._parent) {
+            appendTransform(displayObject._parent, out);
         }
 
         // recalc
@@ -2322,6 +2322,8 @@ var Shader = (function() {
 
     /**
      * The base object for all items in the scene.
+     *
+     * @class DisplayObject
      *
      * @param {Object} parameters An object for initializing the DisplayObject.
      * This object may contain the following properties: visible, alpha, tint,
@@ -2416,18 +2418,21 @@ var Shader = (function() {
         /**
          * @member global.DisplayObject#children
          * @desc An array of child DisplayObjects.
+         * @private
          *
          * @type {Array}
          */
-        scope.children = [];
+        scope._children = [];
 
         /**
          * @member global.DisplayObject#parent
+         * @desc The DisplayObject instance to which this instance has been
+         * added as a child.
+         * @private
          *
-         *
-         * @type {null}
+         * @type {DisplayObject}
          */
-        scope.parent = null;
+        scope._parent = null;
 
         /**
          * @function global.DisplayObject#getWidth
@@ -2519,7 +2524,25 @@ var Shader = (function() {
     };
 
     global.DisplayObject.prototype = {
-        constructor:DisplayObject,
+        constructor:global.DisplayObject,
+
+        /**
+         * Retrieves the parent DisplayObject.
+         *
+         * @returns {DisplayObject}
+         */
+        getParent: function() {
+            return this._parent;
+        },
+
+        /**
+         * Retrieves a copy of the array of children for this DisplayObject.
+         *
+         * @returns {Array}
+         */
+        getChildren: function() {
+            return this._children.slice(0);
+        },
 
         /**
          * Adds a DisplayObject as a child of this one.
@@ -2531,14 +2554,14 @@ var Shader = (function() {
          */
         addChild: function(child) {
             // remove from old parent
-            if (child.parent &&
-                child.parent !== this) {
-                child.parent.removeChild(child);
+            if (child._parent &&
+                child._parent !== this) {
+                child._parent.removeChild(child);
             }
 
             // we are the new parent
-            child.parent = this;
-            this.children.push(child);
+            child._parent = this;
+            this._children.push(child);
 
             return child;
         },
@@ -2550,7 +2573,7 @@ var Shader = (function() {
          * children.
          */
         addChildren: function(children) {
-            this.children = this.children.concat(children);
+            this.children = this._children.concat(children);
         },
 
         /**
@@ -2561,11 +2584,11 @@ var Shader = (function() {
          */
         removeChild: function(child) {
             // TODO: Save indices on child, replace hole with last
-            var index = this.children.indexOf(child);
+            var index = this._children.indexOf(child);
             if (-1 !== index) {
-                this.children.splice(index, 1);
+                this._children.splice(index, 1);
 
-                child.parent = null;
+                child._parent = null;
             }
 
             return child;
@@ -2578,39 +2601,97 @@ var Shader = (function() {
          */
         removeChildren: function(children) {
             var newChildren = [];
-            this.children.forEach(function(node) {
+            this._children.forEach(function(node) {
                 if (-1 === children.indexOf(node)) {
                     newChildren.push(node);
                 } else {
-                    node.parent = null;
+                    node._parent = null;
                 }
             });
-            this.children = newChildren;
+            this._children = newChildren;
         }
     };
 })(this);
+/**
+ * Author: thegoldenmule
+ * Date: 8/11/13
+ */
+
+(function (global) {
+    "use strict";
+
+    var _objectsById = {};
+
+    /**
+     * @class SceneManager
+     * @desc Manages all objects in the scene and provides an interface for
+     * querying.
+     * @returns {SceneManager}
+     * @constructor
+     */
+    global.SceneManager = {
+        /**
+         * @desc Adds a DisplayObject to the SceneManager for management.
+         * @param {DisplayObject} displayObject The DisplayObject instance to
+         * add.
+         *
+         * @private
+         */
+        __addDisplayObject: function(displayObject) {
+            _objectsById[displayObject.getUniqueId()] = displayObject;
+        },
+
+        /**
+         * @desc Removes a DisplayObject from the SceneManager.
+         * @param {DisplayObject} displayObject The DisplayObject instance to
+         * remove.
+         *
+         * @private
+         */
+        __removeDisplayObject: function(displayObject) {
+            delete _objectsById[displayObject.getUniqueId()];
+        },
+
+        /**
+         * @desc Retrieves a DisplayObject from the scene by id.
+         * @param {number} id The integral id of the DisplayObject to retrieve.
+         * @return {DisplayObject}
+         */
+        getById: function(id) {
+            return id in _objectsById ? _objectsById[id] : null;
+        }
+    };
+
+})(this);
+
 /**
  * Author: thegoldenmule
  * Date: 3/10/13
  */
 
 (function (global) {
-    var Shape = function (parameters) {
+    /**
+     * @desc Describes a simple Quad of a single color.
+     * @extends global.DisplayObject
+     * @class Shape
+     * @param {Object} parameters Any initialization parameters as described by
+     * the DisplayObject documentation.
+     * @returns {Shape}
+     * @constructor
+     */
+    global.Shape = function (parameters) {
         var scope = this;
 
         // extend DisplayObject
-        DisplayObject.call(scope, parameters);
+        global.DisplayObject.call(scope, parameters);
 
         scope.material.shader.setShaderProgramIds("color-shader-vs", "color-shader-fs");
 
         return scope;
     };
 
-    Shape.prototype = new DisplayObject();
-    Shape.prototype.constructor = Shape;
-
-    // export
-    global.Shape = Shape;
+    global.Shape.prototype = new DisplayObject();
+    global.Shape.prototype.constructor = Shape;
 })(this);
 /**
  * Author: thegoldenmule

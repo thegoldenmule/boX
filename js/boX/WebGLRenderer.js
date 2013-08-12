@@ -308,8 +308,8 @@
      * @returns {*}
      */
     function composeColor(displayObject, out) {
-        if (null !== displayObject.parent) {
-            composeColor(displayObject.parent, out);
+        if (displayObject._parent) {
+            composeColor(displayObject._parent, out);
         }
 
         out[0] *= displayObject.tint.r;

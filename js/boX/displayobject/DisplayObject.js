@@ -12,8 +12,8 @@
     function composeTransforms(displayObject, out) {
         mat4.identity(out);
 
-        if (null !== displayObject.parent) {
-            appendTransform(displayObject.parent, out);
+        if (null !== displayObject._parent) {
+            appendTransform(displayObject._parent, out);
         }
 
         mat4.multiply(out, out, displayObject.transform.recalculateMatrix());
@@ -22,8 +22,8 @@
     }
 
     function appendTransform(displayObject, out) {
-        if (null !== displayObject.parent) {
-            appendTransform(displayObject.parent, out);
+        if (null !== displayObject._parent) {
+            appendTransform(displayObject._parent, out);
         }
 
         // recalc
@@ -32,6 +32,8 @@
 
     /**
      * The base object for all items in the scene.
+     *
+     * @class DisplayObject
      *
      * @param {Object} parameters An object for initializing the DisplayObject.
      * This object may contain the following properties: visible, alpha, tint,
@@ -126,18 +128,21 @@
         /**
          * @member global.DisplayObject#children
          * @desc An array of child DisplayObjects.
+         * @private
          *
          * @type {Array}
          */
-        scope.children = [];
+        scope._children = [];
 
         /**
          * @member global.DisplayObject#parent
+         * @desc The DisplayObject instance to which this instance has been
+         * added as a child.
+         * @private
          *
-         *
-         * @type {null}
+         * @type {DisplayObject}
          */
-        scope.parent = null;
+        scope._parent = null;
 
         /**
          * @function global.DisplayObject#getWidth
@@ -229,7 +234,25 @@
     };
 
     global.DisplayObject.prototype = {
-        constructor:DisplayObject,
+        constructor:global.DisplayObject,
+
+        /**
+         * Retrieves the parent DisplayObject.
+         *
+         * @returns {DisplayObject}
+         */
+        getParent: function() {
+            return this._parent;
+        },
+
+        /**
+         * Retrieves a copy of the array of children for this DisplayObject.
+         *
+         * @returns {Array}
+         */
+        getChildren: function() {
+            return this._children.slice(0);
+        },
 
         /**
          * Adds a DisplayObject as a child of this one.
@@ -241,14 +264,14 @@
          */
         addChild: function(child) {
             // remove from old parent
-            if (child.parent &&
-                child.parent !== this) {
-                child.parent.removeChild(child);
+            if (child._parent &&
+                child._parent !== this) {
+                child._parent.removeChild(child);
             }
 
             // we are the new parent
-            child.parent = this;
-            this.children.push(child);
+            child._parent = this;
+            this._children.push(child);
 
             return child;
         },
@@ -260,7 +283,7 @@
          * children.
          */
         addChildren: function(children) {
-            this.children = this.children.concat(children);
+            this.children = this._children.concat(children);
         },
 
         /**
@@ -271,11 +294,11 @@
          */
         removeChild: function(child) {
             // TODO: Save indices on child, replace hole with last
-            var index = this.children.indexOf(child);
+            var index = this._children.indexOf(child);
             if (-1 !== index) {
-                this.children.splice(index, 1);
+                this._children.splice(index, 1);
 
-                child.parent = null;
+                child._parent = null;
             }
 
             return child;
@@ -288,14 +311,14 @@
          */
         removeChildren: function(children) {
             var newChildren = [];
-            this.children.forEach(function(node) {
+            this._children.forEach(function(node) {
                 if (-1 === children.indexOf(node)) {
                     newChildren.push(node);
                 } else {
-                    node.parent = null;
+                    node._parent = null;
                 }
             });
-            this.children = newChildren;
+            this._children = newChildren;
         }
     };
 })(this);
