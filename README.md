@@ -10,3 +10,8 @@ familiar API of Flash or Starling without the stupidity (and with loads more per
 
 ## Motivation
 Cause it's fun.
+
+##Demos
+* Cloth Sim - http://thegoldenmule.com/labs/boX/demos/index-fabric.html
+* SpriteSheet - http://thegoldenmule.com/labs/boX/demos/index-wyvern.html
+* Performance - http://thegoldenmule.com/labs/boX/demos/index-test.html

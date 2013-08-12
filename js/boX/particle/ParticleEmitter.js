@@ -20,6 +20,9 @@
         // extend DisplayObject
         DisplayObject.call(scope, {color:new Color(1, 0, 0, 1)});
 
+        // set the anchor point to the center
+        scope.transform.anchorPoint.x = scope.transform.anchorPoint.y = 1;
+
         scope.material = material;
         scope.material.shader.setShaderProgramIds("texture-shader-vs", "texture-shader-fs");
 
