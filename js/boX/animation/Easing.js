@@ -7,7 +7,9 @@
     "use strict";
 
     /**
+     @class Easing
 
+     @desc
      The MIT License
 
      Copyright (c) 2010-2012 Tween.js authors.
@@ -33,7 +35,7 @@
      THE SOFTWARE.
 
      */
-    var Easing = {
+    global.Easing = {
 
         Linear: {
 
@@ -380,7 +382,4 @@
         }
 
     };
-
-    global.Easing = Easing;
-
 })(this);

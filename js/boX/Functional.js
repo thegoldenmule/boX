@@ -9,7 +9,7 @@
     /**
      * Curry function.
      *
-     * @returns {*}
+     * @returns {Function}
      */
     global.Function.prototype.curry = function () {
         var array = Array.prototype.slice.call(arguments);

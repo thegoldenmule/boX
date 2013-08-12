@@ -6,32 +6,60 @@
 (function (global) {
     "use strict";
 
-    var AnimationCurveKey = function(time, value) {
+    /**
+     * @class AnimationCurveKey
+     * @author thegoldenmule
+     * @desc Defines a point (x, y) in ([0,1], [0,1]).
+     * @param {number} time A normalized value that defines the time at which
+     * the curve should be at value.
+     * @param {number} value A normalized value that defines the value at which
+     * the curve should be at time.
+     * @returns {AnimationCurveKey}
+     * @constructor
+     */
+    global.AnimationCurveKey = function(time, value) {
         var scope = this;
 
-        scope.time = time;
-        scope.value = value;
+        scope.time = Math.clamp(undefined === time ? 0 : time, 0, 1);
+        scope.value = Math.clamp(undefined === value ? 1 : value, 0, 1);
 
         return scope;
     };
 
-    var AnimationCurve = function () {
+    global.AnimationCurveKey.prototype = {
+        constructor: global.AnimationCurveKey
+    };
+
+    /**
+     * @class AnimationCurve
+     * @desc Defines a continuous function through points in the unit interval
+     * on R^2. These points are given as AnimationCurveKeys.
+     * @param {Array} keys An optional array of AnimationCurveKeys to populate
+     * the curve with.
+     * @returns {AnimationCurve}
+     * @constructor
+     */
+    global.AnimationCurve = function (keys) {
         var scope = this;
 
         var _keys = [
-            new AnimationCurveKey(0, 0),
-            new AnimationCurveKey(1, 1)
+            new global.AnimationCurveKey(0, 0),
+            new global.AnimationCurveKey(1, 1)
         ];
 
         /**
-         * Defines the ease method to use.
+         * @member global.AnimationCurve#easingFunction
+         * @desc Defines the easing method to use. Predefined easing types are
+         * given in the Easing object, but any function f:[0, 1] -> [0, 1] will do.
+         * Defaults to Easing.Quadradic.InOut
          *
-         * @type {*}
+         * @type {Function}
          */
-        scope.easingFunction = Easing.Quadratic.In;
+        scope.easingFunction = Easing.Quadratic.InOut;
 
         /**
-         * Retrieves a copy of the keys array.
+         * @function global.AnimationCurve#getKeys
+         * @desc Retrieves a copy of the keys array.
          *
          * @returns {Array}
          */
@@ -40,9 +68,35 @@
         };
 
         /**
-         * Adds a key time.
+         * @function global.AnimationCurve#getFirstKey
+         * @desc Retrieves the first AnimationCurveKey instance.
          *
-         * @param key An AnimationCurveKey.
+         * @returns {AnimationCurveKey}
+         */
+        scope.getFirstKey = function() {
+            return 0 !== _keys.length ? _keys[0] : null;
+        };
+
+        /**
+         * @function global.AnimationCurve#getLastKey
+         * @desc Retrieves the last AnimationCurveKey instance.
+         *
+         * @returns {AnimationCurveKey}
+         */
+        scope.getLastKey = function() {
+            if (_keys.length > 0) {
+                return _keys[_keys.length - 1];
+            }
+
+            return null;
+        };
+
+        /**
+         * @function global.AnimationCurve#addKey
+         * @desc Adds an AnimationCurveKey to the curve.
+         * @param {AnimationCurveKey} key An AnimationCurveKey.
+         *
+         * @returns {AnimationCurveKey}
          */
         scope.addKey = function(key) {
             // simple sort on insert
@@ -56,12 +110,16 @@
             }
 
             _keys.push(key);
+
+            return key;
         };
 
         /**
-         * Removes a key time.
+         * @function global.AnimationCurve#removeKey
+         * @desc Removes an AnimationCurveKey from this curve.
+         * @param {AnimationCurveKey} key An AnimationCurveKey.
          *
-         * @param key An AnimationCurveKey.
+         * @returns {AnimationCurveKey}
          */
         scope.removeKey = function(key) {
             // remove
@@ -72,9 +130,11 @@
         };
 
         /**
-         * Evaluates the animation curve at a normalized parameter t.
+         * @function global.AnimationCurve#evaluate
+         * @desc Evaluates the animation curve at a normalized parameter t.
+         * @param {Number} t A value in the unit interval.
          *
-         * @param t
+         * @returns {Number}
          */
         scope.evaluate = function(t) {
             // clamp input
@@ -105,12 +165,15 @@
         };
 
         /**
-         * Linearly interpolates using the easing function (which is possibly
+         * @desc Linearly interpolates using the easing function (which is possibly
          * non-linear).
+         *
+         * @private
          *
          * @param a
          * @param b
          * @param t
+         * SS
          * @returns {number}
          */
         function interpolate(a, b, t) {
@@ -120,12 +183,7 @@
         return scope;
     };
 
-    AnimationCurve.prototype = {
-        constructor: AnimationCurve
+    global.AnimationCurve.prototype = {
+        constructor: global.AnimationCurve
     };
-
-    // export
-    global.AnimationCurveKey = AnimationCurveKey;
-    global.AnimationCurve = AnimationCurve;
-
 })(this);

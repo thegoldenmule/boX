@@ -1,24 +1,37 @@
-/**
- * Author: thegoldenmule
- * Date: 5/26/13
- *
- * Very basic unordered data structure with fast add + remove.
- */
 (function (global) {
     "use strict";
 
+    /**
+     * @desc Keeps track of number of Set instances, so each can have a unique
+     * id.
+     * @type {number}
+     * @private
+     * @static
+     */
     var __indices = 0;
 
-    var Set = function () {
+    /**
+     * @class Set
+     * @desc Creates an unordered Set. Sets have very fast add and remove, and
+     * will only hold distinct instances.
+     * @author thegoldenmule
+     * @returns {Set}
+     * @constructor
+     */
+    global.Set = function () {
         var scope = this;
 
         var _guidKey = "__set" + (++__indices),
             _elements = [];
 
         /**
-         * Adds an element to the set.
+         * @function global.Set#add
+         * @desc Adds an element to the set. If this element is already a
+         * member of this set, it discard its previous reference so that there
+         * is only a single reference to the object.
+         * @param {Object} element The element to add to the Set.
          *
-         * @param element
+         * @return {Object}
          */
         scope.add = function(element) {
             scope.remove(element);
@@ -30,9 +43,11 @@
         };
 
         /**
-         * Removes an element from the set.
+         * @function global.Set#remove
+         * @desc Removes an element from the set.
+         * @param {Object} element The element to remove.
          *
-         * @param element
+         * @return {Object}
          */
         scope.remove = function(element) {
             if (undefined === element[_guidKey]) {
@@ -70,10 +85,7 @@
         return scope;
     };
 
-    Set.prototype = {
-        constructor: Set
+    global.Set.prototype = {
+        constructor: global.Set
     };
-
-    // export
-    global.Set = Set;
 })(this);

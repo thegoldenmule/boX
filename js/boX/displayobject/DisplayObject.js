@@ -273,6 +273,8 @@
             child._parent = this;
             this._children.push(child);
 
+            global.SceneManager.__addDisplayObject(child);
+
             return child;
         },
 
@@ -283,7 +285,7 @@
          * children.
          */
         addChildren: function(children) {
-            this.children = this._children.concat(children);
+            children.forEach(this.addChild);
         },
 
         /**
@@ -299,6 +301,8 @@
                 this._children.splice(index, 1);
 
                 child._parent = null;
+
+                global.SceneManager.__removeDisplayObject(child);
             }
 
             return child;
@@ -310,15 +314,16 @@
          * @param children
          */
         removeChildren: function(children) {
-            var newChildren = [];
-            this._children.forEach(function(node) {
-                if (-1 === children.indexOf(node)) {
-                    newChildren.push(node);
-                } else {
-                    node._parent = null;
-                }
-            });
-            this._children = newChildren;
+            children.forEach(this.removeChild);
+        },
+
+        /**
+         * Safely removes this DisplayObject from its parent.
+         */
+        removeFromParent: function() {
+            if (this._parent) {
+                this._parent.removeChild(this);
+            }
         }
     };
 })(this);
