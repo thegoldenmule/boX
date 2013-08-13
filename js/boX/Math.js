@@ -52,4 +52,8 @@
     Math.clamp = function(value, min, max) {
         return value < min ? min : value > max ? max : value;
     };
+
+    Math.randomInt = function(min, max) {
+        return ~~(min + Math.random() * (max - min));
+    };
 })();

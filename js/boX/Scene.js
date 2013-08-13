@@ -18,6 +18,9 @@
         scope.root = new DisplayObject();
         scope.root._parent = scope.root;
 
+        // initialize the SceneManager
+        SceneManager.__initialize(scope.root);
+
         scope.showBoundingBoxes = false;
 
         scope.update = function(dt, renderer) {

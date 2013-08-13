@@ -1,7 +1,7 @@
 server: http://localhost:4224
 
 load:
-  - build/js/box.0.1.js
+  - build/js/box.0.8.js
 
 test:
   - test/*.js

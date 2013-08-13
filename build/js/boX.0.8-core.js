@@ -564,6 +564,10 @@ Engine.prototype = {
     Math.clamp = function(value, min, max) {
         return value < min ? min : value > max ? max : value;
     };
+
+    Math.randomInt = function(min, max) {
+        return ~~(min + Math.random() * (max - min));
+    };
 })();
 /**
  * User: ti83
@@ -760,6 +764,9 @@ Engine.prototype = {
         scope.autoBatch = false;
         scope.root = new DisplayObject();
         scope.root._parent = scope.root;
+
+        // initialize the SceneManager
+        SceneManager.__initialize(scope.root);
 
         scope.showBoundingBoxes = false;
 
@@ -2391,7 +2398,7 @@ var Shader = (function() {
      *
      * @param {Object} parameters An object for initializing the DisplayObject.
      * This object may contain the following properties: visible, alpha, tint,
-     * x, y, material, mainTexture, secTexture, width and height.
+     * x, y, material, mainTexture, secTexture, width, height, and name.
      *
      * @returns {DisplayObject}
      *
@@ -2424,6 +2431,13 @@ var Shader = (function() {
         if (undefined === parameters) {
             parameters = {};
         }
+
+        /**
+         * @member global.DisplayObject#name
+         * @desc A non-unique name.
+         * @type {string}
+         */
+        scope.name = undefined === parameters.name ? "displayObject"  + _id.toString() : parameters.name;
 
         /**
          * @member global.DisplayObject#visible
@@ -2640,6 +2654,22 @@ var Shader = (function() {
         },
 
         /**
+         * Returns a child by name, or null if no child by that name exists.
+         * @param {String} name The name of the child to return.
+         *
+         * @return {DisplayObject}
+         */
+        getChildByName: function(name) {
+            for (var i = 0, len = this._children.length; i < len; i++) {
+                if (this._children[i].name === name) {
+                    return this._children[i];
+                }
+            }
+
+            return null;
+        },
+
+        /**
          * Adds a DisplayObject as a child of this one.
          *
          * @param {DisplayObject} child A DisplayObject instance to add as a
@@ -2745,7 +2775,8 @@ var Shader = (function() {
 (function (global) {
     "use strict";
 
-    var _objectsById = {};
+    var _root = null,
+        _objectsById = {};
 
     /**
      * @class SceneManager
@@ -2755,6 +2786,16 @@ var Shader = (function() {
      * @constructor
      */
     global.SceneManager = {
+        /**
+         * @desc Initializes the SceneManager with the root DisplayObject.
+         * @param {DisplayObject} displayObject The root DisplayObject.
+         *
+         * @private
+         */
+        __initialize: function(displayObject) {
+            _root = displayObject;
+        },
+
         /**
          * @desc Adds a DisplayObject to the SceneManager for management.
          * @param {DisplayObject} displayObject The DisplayObject instance to
@@ -2784,8 +2825,101 @@ var Shader = (function() {
          */
         getById: function(id) {
             return id in _objectsById ? _objectsById[id] : null;
+        },
+
+        /**
+         * @desc Basic query method to find collections of objects.
+         * @param {Array} query A query is made up of DisplayObject names and
+         * searches over either immediate children or descendants at arbitrary
+         * depth. A search over immediate children is given by "." while a
+         * recursive search is given by "..". An example follows.
+         * @param {DisplayObject} context The DisplayObject to start the search from.
+         * If no context is provided, the search starts at the top of the graph,
+         * i.e. the scene root.
+         *
+         * @example
+         * // for root -> a -> b -> c -> ... -> z
+         * var a = SceneManager.find("a");
+         * var z = SceneManager.find("..z");
+         * var f = SceneManager.find("a.b.c.d.e.f");
+         * var f = SceneManager.find("a..f");
+         * var g = SceneManager.find("a..f.g");
+         * var g = SceneManager.find("..f.g", c);
+         * var g = SceneManager.find("..f..g");
+         * var z = SceneManager.find(".f..z", e);
+         */
+        find: function(query, context) {
+            if (!_root) {
+                throw new Error("Must initialize SceneManager before calling find.");
+            }
+
+            if (!query){
+                return null;
+            }
+
+            var current = !context ? _root : context;
+
+            // split at recursive searches
+            var recurse = false;
+            var recursiveQueries = query.split("..");
+            for (var i = 0, ilen = recursiveQueries.length; i < ilen; i++) {
+                var recursiveQuery = recursiveQueries[i];
+
+                // split into shallow searches
+                var shallowQueries = recursiveQuery.split(".");
+
+                // ? I don't understand why split works this way.
+                if ("" === shallowQueries[0]) {
+                    shallowQueries.shift();
+                }
+
+                // recursive find
+                if (recurse) {
+                    var recursiveChildName = shallowQueries.shift();
+
+                    var recursiveChild = recursiveFindChildByName(current, recursiveChildName);
+                    if (null !== recursiveChild) {
+                        current = recursiveChild;
+                    } else {
+                        return null;
+                    }
+                }
+
+                // perform hallow searches
+                for (var j = 0, jlen = shallowQueries.length; j < jlen; j++) {
+                    var shallowQuery = shallowQueries[j];
+
+                    // get immediate child by name
+                    var child = current.getChildByName(shallowQuery);
+                    if (null !== child) {
+                        current = child;
+                    } else {
+                        return null;
+                    }
+                }
+
+                recurse = 0 === recursiveQuery.length || 0 === i % 2;
+            }
+
+            return current;
         }
     };
+
+    function recursiveFindChildByName(child, name) {
+        var newChild = child.getChildByName(name);
+        if (null === newChild) {
+            var children = child.getChildren();
+            for (var i = 0, len = children.length; i < len; i++) {
+                newChild = recursiveFindChildByName(children[i], name);
+
+                if (null !== newChild) {
+                    return newChild;
+                }
+            }
+        }
+
+        return newChild;
+    }
 
 })(this);
 

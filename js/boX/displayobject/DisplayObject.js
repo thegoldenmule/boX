@@ -14,7 +14,7 @@
      *
      * @param {Object} parameters An object for initializing the DisplayObject.
      * This object may contain the following properties: visible, alpha, tint,
-     * x, y, material, mainTexture, secTexture, width and height.
+     * x, y, material, mainTexture, secTexture, width, height, and name.
      *
      * @returns {DisplayObject}
      *
@@ -47,6 +47,13 @@
         if (undefined === parameters) {
             parameters = {};
         }
+
+        /**
+         * @member global.DisplayObject#name
+         * @desc A non-unique name.
+         * @type {string}
+         */
+        scope.name = undefined === parameters.name ? "displayObject"  + _id.toString() : parameters.name;
 
         /**
          * @member global.DisplayObject#visible
@@ -260,6 +267,22 @@
          */
         getChildren: function() {
             return this._children.slice(0);
+        },
+
+        /**
+         * Returns a child by name, or null if no child by that name exists.
+         * @param {String} name The name of the child to return.
+         *
+         * @return {DisplayObject}
+         */
+        getChildByName: function(name) {
+            for (var i = 0, len = this._children.length; i < len; i++) {
+                if (this._children[i].name === name) {
+                    return this._children[i];
+                }
+            }
+
+            return null;
         },
 
         /**
