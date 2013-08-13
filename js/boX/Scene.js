@@ -65,6 +65,8 @@
             for (var i = 0; i < len; i++) {
                 var child = children[i];
 
+                //child.__calculatedWorldMatrix =
+
                 // invisible!
                 if (!child.visible) {
                     continue;

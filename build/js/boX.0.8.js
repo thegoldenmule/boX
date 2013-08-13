@@ -5926,6 +5926,8 @@ Engine.prototype = {
             for (var i = 0; i < len; i++) {
                 var child = children[i];
 
+                //child.__calculatedWorldMatrix =
+
                 // invisible!
                 if (!child.visible) {
                     continue;
@@ -7498,30 +7500,7 @@ var Shader = (function() {
     var Signal = signals.Signal;
 
     var __GUIDS = 0,
-        __tempVec3 = vec3.create(),
-        __tempRect = new Rectangle();
-
-    // TODO: These are so expensive, and a parent's matrix is recalculated once for every child.
-    function composeTransforms(displayObject, out) {
-        mat4.identity(out);
-
-        if (null !== displayObject._parent && displayObject._parent !== displayObject) {
-            appendTransform(displayObject._parent, out);
-        }
-
-        mat4.multiply(out, out, displayObject.transform.recalculateMatrix());
-
-        return out;
-    }
-
-    function appendTransform(displayObject, out) {
-        if (null !== displayObject._parent && displayObject._parent !== displayObject) {
-            appendTransform(displayObject._parent, out);
-        }
-
-        // recalc
-        mat4.multiply(out, out, displayObject.transform.recalculateMatrix());
-    }
+        __tempVec3 = vec3.create();
 
     /**
      * The base object for all items in the scene.
@@ -7549,9 +7528,16 @@ var Shader = (function() {
         var scope = this;
 
         var _id = __GUIDS++,
-            _worldMatrix = mat4.create(),
             _boundingBox = new Rectangle(0, 0, 0, 0),
             _worldBoundingBox = new Rectangle(0, 0, 0, 0);
+
+        /**
+         * @member global.DisplayObject#_worldMatrix
+         * @desc Holds the world transform of this object.
+         * @private
+         * @type {mat4}
+         */
+        scope._worldMatrix = mat4.create();
 
         if (undefined === parameters) {
             parameters = {};
@@ -7664,9 +7650,33 @@ var Shader = (function() {
          *
          * @returns {mat4}
          */
-        scope.recalculateWorldMatrix = function() {
-            return composeTransforms(scope, _worldMatrix);
-        };
+        scope.recalculateWorldMatrix = (function() {
+
+            function appendTransform(displayObject, out) {
+                if (null !== displayObject._parent && displayObject._parent !== displayObject) {
+                    appendTransform(displayObject._parent, out);
+                }
+
+                // recalc
+                mat4.multiply(out, out, displayObject.transform.recalculateMatrix());
+            }
+
+            function composeTransforms(displayObject, out) {
+                mat4.identity(out);
+
+                if (null !== displayObject._parent && displayObject._parent !== displayObject) {
+                    appendTransform(displayObject._parent, out);
+                }
+
+                mat4.multiply(out, out, displayObject.transform.recalculateMatrix());
+
+                return out;
+            }
+
+            return function() {
+                return composeTransforms(scope, scope._worldMatrix);
+            };
+        })();
 
         /**
          * @function global.DisplayObject#getUniqueId
@@ -9182,4 +9192,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Mon, 12 Aug 2013 18:26:30 -0700";
+var __buildTimestamp = "Tue, 13 Aug 2013 05:41:07 -0700";
