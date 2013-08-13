@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: displayobject/SceneManager.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: displayobject/SceneManager.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source"><code>/**
+ * Author: thegoldenmule
+ * Date: 8/11/13
+ */
+
+(function (global) {
+    "use strict";
+
+    var _root = null,
+        _objectsById = {};
+
+    /**
+     * @class SceneManager
+     * @desc Manages all objects in the scene and provides an interface for
+     * querying.
+     * @returns {SceneManager}
+     * @constructor
+     */
+    global.SceneManager = {
+        /**
+         * @desc Initializes the SceneManager with the root DisplayObject.
+         * @param {DisplayObject} displayObject The root DisplayObject.
+         *
+         * @private
+         */
+        __initialize: function(displayObject) {
+            _root = displayObject;
+        },
+
+        /**
+         * @desc Adds a DisplayObject to the SceneManager for management.
+         * @param {DisplayObject} displayObject The DisplayObject instance to
+         * add.
+         *
+         * @private
+         */
+        __addDisplayObject: function(displayObject) {
+            _objectsById[displayObject.getUniqueId()] = displayObject;
+        },
+
+        /**
+         * @desc Removes a DisplayObject from the SceneManager.
+         * @param {DisplayObject} displayObject The DisplayObject instance to
+         * remove.
+         *
+         * @private
+         */
+        __removeDisplayObject: function(displayObject) {
+            delete _objectsById[displayObject.getUniqueId()];
+        },
+
+        /**
+         * @desc Retrieves a DisplayObject from the scene by id.
+         * @param {number} id The integral id of the DisplayObject to retrieve.
+         * @return {DisplayObject}
+         */
+        getById: function(id) {
+            return id in _objectsById ? _objectsById[id] : null;
+        },
+
+        /**
+         * @desc Basic query method to find collections of objects.
+         * @param {Array} query A query is made up of DisplayObject names and
+         * searches over either immediate children or descendants at arbitrary
+         * depth. A search over immediate children is given by "." while a
+         * recursive search is given by "..". An example follows.
+         * @param {DisplayObject} context The DisplayObject to start the search from.
+         * If no context is provided, the search starts at the top of the graph,
+         * i.e. the scene root.
+         *
+         * @example
+         * // for root -> a -> b -> c -> ... -> z
+         * var a = SceneManager.find("a");
+         * var z = SceneManager.find("..z");
+         * var f = SceneManager.find("a.b.c.d.e.f");
+         * var f = SceneManager.find("a..f");
+         * var g = SceneManager.find("a..f.g");
+         * var g = SceneManager.find("..f.g", c);
+         * var g = SceneManager.find("..f..g");
+         * var z = SceneManager.find(".f..z", e);
+         */
+        find: function(query, context) {
+            if (!_root) {
+                throw new Error("Must initialize SceneManager before calling find.");
+            }
+
+            if (!query){
+                return null;
+            }
+
+            var current = !context ? _root : context;
+
+            // split at recursive searches
+            var recurse = false;
+            var recursiveQueries = query.split("..");
+            for (var i = 0, ilen = recursiveQueries.length; i &lt; ilen; i++) {
+                var recursiveQuery = recursiveQueries[i];
+
+                // split into shallow searches
+                var shallowQueries = recursiveQuery.split(".");
+
+                // ? I don't understand why split works this way.
+                if ("" === shallowQueries[0]) {
+                    shallowQueries.shift();
+                }
+
+                // recursive find
+                if (recurse) {
+                    var recursiveChildName = shallowQueries.shift();
+
+                    var recursiveChild = recursiveFindChildByName(current, recursiveChildName);
+                    if (null !== recursiveChild) {
+                        current = recursiveChild;
+                    } else {
+                        return null;
+                    }
+                }
+
+                // perform hallow searches
+                for (var j = 0, jlen = shallowQueries.length; j &lt; jlen; j++) {
+                    var shallowQuery = shallowQueries[j];
+
+                    // get immediate child by name
+                    var child = current.getChildByName(shallowQuery);
+                    if (null !== child) {
+                        current = child;
+                    } else {
+                        return null;
+                    }
+                }
+
+                recurse = 0 === recursiveQuery.length || 0 === i % 2;
+            }
+
+            return current;
+        }
+    };
+
+    function recursiveFindChildByName(child, name) {
+        var newChild = child.getChildByName(name);
+        if (null === newChild) {
+            var children = child.getChildren();
+            for (var i = 0, len = children.length; i &lt; len; i++) {
+                newChild = recursiveFindChildByName(children[i], name);
+
+                if (null !== newChild) {
+                    return newChild;
+                }
+            }
+        }
+
+        return newChild;
+    }
+
+})(this);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Easing.html">Easing</a></li><li><a href="global.AnimationCurve.html">AnimationCurve</a></li><li><a href="global.AnimationCurveKey.html">AnimationCurveKey</a></li><li><a href="global.Color.html">Color</a></li><li><a href="global.DisplayObject.html">DisplayObject</a></li><li><a href="global.ObjectPool.html">ObjectPool</a></li><li><a href="global.particle.AlphaAnimator.html">AlphaAnimator</a></li><li><a href="global.particle.ParticlePropertyAnimator.html">ParticlePropertyAnimator</a></li><li><a href="global.particle.Rotation.html">Rotation</a></li><li><a href="global.particle.ScaleAnimator.html">ScaleAnimator</a></li><li><a href="global.SceneManager.html">SceneManager</a></li><li><a href="global.Set.html">Set</a></li><li><a href="global.Shape.html">Shape</a></li><li><a href="global.StaticImage.html">StaticImage</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Engine">Engine</a></li><li><a href="global.html#Shader">Shader</a></li><li><a href="global.html#Signal">Signal</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Aug 13 2013 09:11:28 GMT-0700 (PDT)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
