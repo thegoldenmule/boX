@@ -16,6 +16,8 @@
 
         scope.autoBatch = false;
         scope.root = new DisplayObject();
+        scope.root._parent = scope.root;
+
         scope.showBoundingBoxes = false;
 
         scope.update = function(dt, renderer) {

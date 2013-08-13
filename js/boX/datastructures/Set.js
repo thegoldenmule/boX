@@ -34,6 +34,10 @@
          * @return {Object}
          */
         scope.add = function(element) {
+            if (!element) {
+                return;
+            }
+
             scope.remove(element);
 
             element[_guidKey] = _elements.length;
@@ -50,6 +54,10 @@
          * @return {Object}
          */
         scope.remove = function(element) {
+            if (!element) {
+                return;
+            }
+
             if (undefined === element[_guidKey]) {
                 return;
             }

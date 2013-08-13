@@ -308,7 +308,7 @@
      * @returns {*}
      */
     function composeColor(displayObject, out) {
-        if (displayObject._parent) {
+        if (displayObject._parent && displayObject._parent !== displayObject) {
             composeColor(displayObject._parent, out);
         }
 

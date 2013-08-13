@@ -12,7 +12,7 @@
     function composeTransforms(displayObject, out) {
         mat4.identity(out);
 
-        if (null !== displayObject._parent) {
+        if (null !== displayObject._parent && displayObject._parent !== displayObject) {
             appendTransform(displayObject._parent, out);
         }
 
@@ -22,7 +22,7 @@
     }
 
     function appendTransform(displayObject, out) {
-        if (null !== displayObject._parent) {
+        if (null !== displayObject._parent && displayObject._parent !== displayObject) {
             appendTransform(displayObject._parent, out);
         }
 
@@ -263,9 +263,22 @@
          * @returns {DisplayObject}
          */
         addChild: function(child) {
+            if (this === child) {
+                throw new Error("Cannot add self to self.");
+            }
+
+            // root
+            if (child._parent === child) {
+                throw new Error("Cannot add root to another DisplayObject.");
+            }
+
+            // already added
+            if (child._parent === this) {
+                return;
+            }
+
             // remove from old parent
-            if (child._parent &&
-                child._parent !== this) {
+            if (child._parent) {
                 child._parent.removeChild(child);
             }
 
@@ -273,7 +286,9 @@
             child._parent = this;
             this._children.push(child);
 
-            global.SceneManager.__addDisplayObject(child);
+            if (null !== this.getParent()) {
+                global.SceneManager.__addDisplayObject(child);
+            }
 
             return child;
         },
@@ -323,6 +338,16 @@
         removeFromParent: function() {
             if (this._parent) {
                 this._parent.removeChild(this);
+            }
+        },
+
+        /**
+         * Removes all children from this DisplayObject.
+         */
+        removeAllChildren: function() {
+            var children = this._children.slice(0);
+            for (var i = 0, len = children; i <len; i++) {
+                this.removeChild(children[i]);
             }
         }
     };

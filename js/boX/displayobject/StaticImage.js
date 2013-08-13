@@ -1,12 +1,15 @@
-/**
- * Author: thegoldenmule
- * Date: 3/11/13
- */
-
 (function (global) {
     "use strict";
 
-    var StaticImage = function (parameters) {
+    /**
+     * @class StaticImage
+     * @extends global.DisplayObject
+     * @param {Object} parameters A parameters object that will be passed to
+     * the DisplayObject constructor.
+     * @returns {StaticImage}
+     * @constructor
+     */
+    global.StaticImage = function (parameters) {
         var scope = this;
 
         if (undefined === parameters) {
@@ -31,9 +34,6 @@
         return scope;
     };
 
-    StaticImage.prototype = new DisplayObject();
-    StaticImage.prototype.constructor = StaticImage;
-
-    // export
-    global.StaticImage = StaticImage;
+    global.StaticImage.prototype = new DisplayObject();
+    global.StaticImage.prototype.constructor = global.StaticImage;
 })(this);

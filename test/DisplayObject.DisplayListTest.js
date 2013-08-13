@@ -1,4 +1,4 @@
-TestCase("testDisplayList",
+TestCase("DisplayList",
     {
         "testChildAddChild": function() {
             var a = new DisplayObject();
@@ -66,5 +66,13 @@ TestCase("testDisplayList",
             });
 
             assertEquals("Parented", children[9], a.getParent());
+        },
+
+        "testAddSelf": function() {
+            var a = new DisplayObject();
+
+            assertException("AddSelf", function() {
+                a.addChild(a);
+            });
         }
     });

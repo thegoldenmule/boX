@@ -2,7 +2,7 @@ var TestItem = function() {
 
 };
 
-TestCase("testSet",
+TestCase("Set",
     {
         "testAdd": function() {
             var set = new Set();
@@ -49,5 +49,40 @@ TestCase("testSet",
 
             assertEquals("AddMultiple", a.getElements().length, 0);
             assertEquals("AddMultiple", b.getElements()[0], item);
+        },
+
+        "testDistinctness": function() {
+            var set = new Set();
+            var item = new TestItem();
+
+            set.add(item);
+            set.add(item);
+
+            assertEquals("Distinctness", set.getElements().length, 1);
+        },
+
+        "testBadRemove": function() {
+            var set = new Set();
+            var item = new TestItem();
+
+            set.remove(item);
+
+            assertEquals("BadRemove", set.getElements().length, 0);
+        },
+
+        "testTrivialAdd": function() {
+            var set = new Set();
+            set.add();
+            set.add(null);
+
+            assertEquals("TrivialAdd", set.getElements().length, 0);
+        },
+
+        "testTrivialRemove": function() {
+            var set = new Set();
+            set.remove();
+            set.remove(null);
+
+            assertEquals("TrivialAdd", set.getElements().length, 0);
         }
     });

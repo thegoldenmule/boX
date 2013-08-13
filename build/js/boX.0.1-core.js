@@ -1,12 +1,16 @@
-/**
- * Author: thegoldenmule
- * Date: 3/10/13
- */
-
 (function (global) {
     "use strict";
 
-    var Color = function(r, g, b) {
+    /**
+     * @class Color
+     * @desc Defines an RGB color.
+     * @param {Number} r A normalized value for red.
+     * @param {Number} g A normalized value for green.
+     * @param {Number} b A normalized value for blue.
+     * @returns {Color}
+     * @constructor
+     */
+    global.Color = function(r, g, b) {
         var that = this;
 
         that.r = undefined === r ? 0 : r;
@@ -16,19 +20,22 @@
         return that;
     };
 
-    Color.prototype = {
-        constructor : Color,
+    global.Color.prototype = {
+        constructor : global.Color,
 
+        /**
+         * @desc Multiplies and returns a color.
+         * @param {Color} color
+         *
+         * @returns {Color}
+         */
         multiply : function(color) {
-            return new Color(
+            return new global.Color(
                 color.r * this.r,
                 color.g * this.g,
                 color.b * this.b);
         }
     };
-
-    // export
-    global.Color = Color;
 })(this);
 /**
  * Author: thegoldenmule
@@ -752,6 +759,8 @@ Engine.prototype = {
 
         scope.autoBatch = false;
         scope.root = new DisplayObject();
+        scope.root._parent = scope.root;
+
         scope.showBoundingBoxes = false;
 
         scope.update = function(dt, renderer) {
@@ -1598,7 +1607,7 @@ var Shader = (function() {
      * @returns {*}
      */
     function composeColor(displayObject, out) {
-        if (displayObject._parent) {
+        if (displayObject._parent && displayObject._parent !== displayObject) {
             composeColor(displayObject._parent, out);
         }
 
@@ -2243,10 +2252,11 @@ var Shader = (function() {
         };
 
         /**
-         * @function global.ObjectPool.put
+         * @function global.ObjectPool#put
          * @desc Puts an object back in the pool.
-         *
-         * @param {Object} instance
+         * @param {Object} instance The instance to return to the pool. If the
+         * object was not originally retrieved from the pool, nothing will
+         * happen...
          */
         scope.put = function(instance) {
             if (undefined === instance[_id]) {
@@ -2264,29 +2274,46 @@ var Shader = (function() {
     };
 
 })(this);
-/**
- * Author: thegoldenmule
- * Date: 5/26/13
- *
- * Very basic unordered data structure with fast add + remove.
- */
 (function (global) {
     "use strict";
 
+    /**
+     * @desc Keeps track of number of Set instances, so each can have a unique
+     * id.
+     * @type {number}
+     * @private
+     * @static
+     */
     var __indices = 0;
 
-    var Set = function () {
+    /**
+     * @class Set
+     * @desc Creates an unordered Set. Sets have very fast add and remove, and
+     * will only hold distinct instances.
+     * @author thegoldenmule
+     * @returns {Set}
+     * @constructor
+     */
+    global.Set = function () {
         var scope = this;
 
         var _guidKey = "__set" + (++__indices),
             _elements = [];
 
         /**
-         * Adds an element to the set.
+         * @function global.Set#add
+         * @desc Adds an element to the set. If this element is already a
+         * member of this set, it discard its previous reference so that there
+         * is only a single reference to the object.
+         * @param {Object} element The element to add to the Set.
          *
-         * @param element
+         * @return {Object}
          */
         scope.add = function(element) {
+            if (!element) {
+                return;
+            }
+
             scope.remove(element);
 
             element[_guidKey] = _elements.length;
@@ -2296,11 +2323,17 @@ var Shader = (function() {
         };
 
         /**
-         * Removes an element from the set.
+         * @function global.Set#remove
+         * @desc Removes an element from the set.
+         * @param {Object} element The element to remove.
          *
-         * @param element
+         * @return {Object}
          */
         scope.remove = function(element) {
+            if (!element) {
+                return;
+            }
+
             if (undefined === element[_guidKey]) {
                 return;
             }
@@ -2336,12 +2369,9 @@ var Shader = (function() {
         return scope;
     };
 
-    Set.prototype = {
-        constructor: Set
+    global.Set.prototype = {
+        constructor: global.Set
     };
-
-    // export
-    global.Set = Set;
 })(this);
 (function (global) {
     "use strict";
@@ -2357,7 +2387,7 @@ var Shader = (function() {
     function composeTransforms(displayObject, out) {
         mat4.identity(out);
 
-        if (null !== displayObject._parent) {
+        if (null !== displayObject._parent && displayObject._parent !== displayObject) {
             appendTransform(displayObject._parent, out);
         }
 
@@ -2367,7 +2397,7 @@ var Shader = (function() {
     }
 
     function appendTransform(displayObject, out) {
-        if (null !== displayObject._parent) {
+        if (null !== displayObject._parent && displayObject._parent !== displayObject) {
             appendTransform(displayObject._parent, out);
         }
 
@@ -2608,9 +2638,22 @@ var Shader = (function() {
          * @returns {DisplayObject}
          */
         addChild: function(child) {
+            if (this === child) {
+                throw new Error("Cannot add self to self.");
+            }
+
+            // root
+            if (child._parent === child) {
+                throw new Error("Cannot add root to another DisplayObject.");
+            }
+
+            // already added
+            if (child._parent === this) {
+                return;
+            }
+
             // remove from old parent
-            if (child._parent &&
-                child._parent !== this) {
+            if (child._parent) {
                 child._parent.removeChild(child);
             }
 
@@ -2618,7 +2661,9 @@ var Shader = (function() {
             child._parent = this;
             this._children.push(child);
 
-            global.SceneManager.__addDisplayObject(child);
+            if (null !== this.getParent()) {
+                global.SceneManager.__addDisplayObject(child);
+            }
 
             return child;
         },
@@ -2668,6 +2713,16 @@ var Shader = (function() {
         removeFromParent: function() {
             if (this._parent) {
                 this._parent.removeChild(this);
+            }
+        },
+
+        /**
+         * Removes all children from this DisplayObject.
+         */
+        removeAllChildren: function() {
+            var children = this._children.slice(0);
+            for (var i = 0, len = children; i <len; i++) {
+                this.removeChild(children[i]);
             }
         }
     };
@@ -2979,15 +3034,18 @@ var Shader = (function() {
     global.Animation = Animation;
     global.SpriteSheet = SpriteSheet;
 })(this);
-/**
- * Author: thegoldenmule
- * Date: 3/11/13
- */
-
 (function (global) {
     "use strict";
 
-    var StaticImage = function (parameters) {
+    /**
+     * @class StaticImage
+     * @extends global.DisplayObject
+     * @param {Object} parameters A parameters object that will be passed to
+     * the DisplayObject constructor.
+     * @returns {StaticImage}
+     * @constructor
+     */
+    global.StaticImage = function (parameters) {
         var scope = this;
 
         if (undefined === parameters) {
@@ -3012,11 +3070,8 @@ var Shader = (function() {
         return scope;
     };
 
-    StaticImage.prototype = new DisplayObject();
-    StaticImage.prototype.constructor = StaticImage;
-
-    // export
-    global.StaticImage = StaticImage;
+    global.StaticImage.prototype = new DisplayObject();
+    global.StaticImage.prototype.constructor = global.StaticImage;
 })(this);
 /**
  * Author: thegoldenmule
