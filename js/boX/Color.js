@@ -24,16 +24,10 @@
         constructor : global.Color,
 
         /**
-         * @desc Multiplies and returns a color.
-         * @param {Color} color
-         *
-         * @returns {Color}
+         * @desc RGB -> (1, 1, 1)
          */
-        multiply : function(color) {
-            return new global.Color(
-                color.r * this.r,
-                color.g * this.g,
-                color.b * this.b);
+        white: function() {
+            this.r = this.g = this.b = 1;
         }
     };
 })(this);

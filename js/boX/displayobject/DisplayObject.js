@@ -44,6 +44,22 @@
          */
         scope._worldMatrix = mat4.create();
 
+        /**
+         * @member global.DisplayObject#_composedTint
+         * @desc Holds the tint composed through all parent tints
+         * @type {Color}
+         * @private
+         */
+        scope._composedTint = new Color(1, 1, 1);
+
+        /**
+         * @member global.DisplayObject#_composedAlpha
+         * @desc Holds the alpha composed through all parent tints
+         * @type {Color}
+         * @private
+         */
+        scope._composedAlpha = 1;
+
         if (undefined === parameters) {
             parameters = {};
         }

@@ -5142,16 +5142,10 @@ if(typeof(exports) !== 'undefined') {
         constructor : global.Color,
 
         /**
-         * @desc Multiplies and returns a color.
-         * @param {Color} color
-         *
-         * @returns {Color}
+         * @desc RGB -> (1, 1, 1)
          */
-        multiply : function(color) {
-            return new global.Color(
-                color.r * this.r,
-                color.g * this.g,
-                color.b * this.b);
+        white: function() {
+            this.r = this.g = this.b = 1;
         }
     };
 })(this);
@@ -5879,7 +5873,6 @@ Engine.prototype = {
     var Scene = function () {
         var scope = this;
 
-        scope.autoBatch = false;
         scope.root = new DisplayObject();
         scope.root._parent = scope.root;
 
@@ -5895,20 +5888,31 @@ Engine.prototype = {
             //
             // TODO: More than likely, there are better ways to do this so we
             // TODO: don't have to figure all this stuff out every tick.
-            var children = [],
-                batches = {};
-            getChildrenRecursively(this.root, children, batches, 0, 100);
+            var children = [];
+            getChildrenRecursively(this.root, children, 0, 100);
 
             // we now have a set of batches and a list of DisplayObjects
             var context = renderer.getContext();
-            context.enable(context.DEPTH_TEST);
-            for (var id in batches) {
-                renderer.drawBatch(batches[id]);
-            }
 
             // render the non-batched elements on top
             context.disable(context.DEPTH_TEST);
             for (var i = 0, len = children.length; i < len; i++) {
+                var child = children[i];
+
+                var localMatrix = child.transform.recalculateMatrix();
+
+                // prepend the parent
+                mat4.multiply(child._worldMatrix, child.getParent()._worldMatrix, localMatrix);
+
+                // multiply parent tint with local tint
+                // TODO: this method is difficult to understand
+                child._composedTint.r = child.tint.r * child.getParent()._composedTint.r;
+                child._composedTint.g = child.tint.g * child.getParent()._composedTint.g;
+                child._composedTint.b = child.tint.b * child.getParent()._composedTint.b;
+
+                // multiply parent alpha with local
+                child._composedAlpha = child.alpha * child.getParent()._composedAlpha;
+
                 renderer.drawDisplayObject(children[i]);
             }
 
@@ -5920,7 +5924,7 @@ Engine.prototype = {
             }
         };
 
-        function getChildrenRecursively(node, list, batches, depthMin, depthMax) {
+        function getChildrenRecursively(node, list, depthMin, depthMax) {
             var children = node._children;
             var len = children.length;
             if (0 === len) {
@@ -5933,7 +5937,14 @@ Engine.prototype = {
             for (var i = 0; i < len; i++) {
                 var child = children[i];
 
-                //child.__calculatedWorldMatrix =
+                // worldmatrix -> identity
+                mat4.identity(child._worldMatrix);
+
+                // reset tint
+                child._composedTint.white();
+
+                // reset alpha
+                child._composedAlpha = 1;
 
                 // invisible!
                 if (!child.visible) {
@@ -5943,20 +5954,9 @@ Engine.prototype = {
                 // set depth
                 child.__depth = depthMin + diff * i;
 
-                // can we batch?
-                if (scope.autoBatch && RenderBatch.canBatch(child)) {
-                    var batch = batches[child.material.getId()];
-                    if (undefined === batch) {
-                        batch = batches[child.material.getId()] = new RenderBatch(child.material);
-                    }
+                list.push(child);
 
-                    batch.addDisplayObject(child);
-                } else {
-                    // otherwise, add to the ordered list
-                    list.push(child);
-                }
-
-                getChildrenRecursively(child, list, batches, child.__depth + diffMin, child.__depth + diffMax);
+                getChildrenRecursively(child, list, child.__depth + diffMin, child.__depth + diffMax);
             }
         }
 
@@ -6581,65 +6581,6 @@ var Shader = (function() {
         },
 
         /**
-         * Draws a RenderBatch to the screen.
-         *
-         * @param renderBatch
-         */
-        drawBatch: function(renderBatch) {
-            var context = this.getContext();
-
-            // set the program to use
-            var shader = renderBatch.getMaterial().shader;
-            shader.compile(context);
-            context.useProgram(shader.getShaderProgram());
-
-            // tell the shader to do its thang
-            shader.pushCustomUniforms(context);
-
-            // set projection
-            if (-1 !== shader.projectionMatrixUniformPointer) {
-                context.uniformMatrix4fv(shader.projectionMatrixUniformPointer, false, this.projectionMatrix);
-            }
-
-            // prepare material once
-            renderBatch.getMaterial().prepareTextures(context);
-            renderBatch.getMaterial().pushTextures(context, shader);
-
-            var displayObjects = renderBatch.getDisplayObjects();
-            for (var i = 0, len = displayObjects.length; i < len; i++) {
-                var displayObject = displayObjects[i];
-
-                // depth
-                if (-1 !== shader.depthUniformPointer) {
-                    context.uniform1f(shader.depthUniformPointer, displayObject.__depth);
-                }
-
-                // update + set transform
-                // TODO: possibly have a dirty flag?
-                if (-1 !== shader.modelMatrixUniformPointer) {
-                    context.uniformMatrix4fv(shader.modelMatrixUniformPointer, false, displayObject.recalculateWorldMatrix(__tempModelMatrix));
-                }
-
-                // color
-                if (-1 !== shader.colorUniformPointer) {
-                    var tint = displayObject.tint;
-                    __tempColor[0] = tint.r;
-                    __tempColor[1] = tint.g;
-                    __tempColor[2] = tint.b;
-                    __tempColor[3] = displayObject.alpha;
-                    context.uniform4fv(shader.colorUniformPointer, __tempColor);
-                }
-
-                // prepare + push buffers
-                displayObject.geometry.prepareBuffers(context);
-                displayObject.geometry.pushBuffers(context, shader);
-
-                // draw
-                displayObject.geometry.draw(context);
-            }
-        },
-
-        /**
          * Draws a single DisplayObject.
          *
          * @param displayObject
@@ -6668,13 +6609,17 @@ var Shader = (function() {
 
             // update + set transform
             if (-1 !== shader.modelMatrixUniformPointer) {
-                context.uniformMatrix4fv(shader.modelMatrixUniformPointer, false, displayObject.recalculateWorldMatrix());
+                context.uniformMatrix4fv(shader.modelMatrixUniformPointer, false, displayObject._worldMatrix);
             }
 
             // color
             if (-1 !== shader.colorUniformPointer) {
-                __tempColor[0] = __tempColor[1] = __tempColor[2] = __tempColor[3] = 1;
-                context.uniform4fv(shader.colorUniformPointer, composeColor(displayObject, __tempColor));
+                __tempColor[0] = displayObject._composedTint.r;
+                __tempColor[1] = displayObject._composedTint.g;
+                __tempColor[2] = displayObject._composedTint.b;
+                __tempColor[3] = displayObject._composedAlpha;
+
+                context.uniform4fv(shader.colorUniformPointer, __tempColor);
             }
 
             // prepare + push buffers
@@ -6725,26 +6670,6 @@ var Shader = (function() {
             };
         })()
     };
-
-    /**
-     * Composes a Color through the scene graph.
-     *
-     * @param displayObject
-     * @param out
-     * @returns {*}
-     */
-    function composeColor(displayObject, out) {
-        if (displayObject._parent && displayObject._parent !== displayObject) {
-            composeColor(displayObject._parent, out);
-        }
-
-        out[0] *= displayObject.tint.r;
-        out[1] *= displayObject.tint.g;
-        out[2] *= displayObject.tint.b;
-        out[3] *= displayObject.alpha;
-
-        return out;
-    }
 
     // export
     global.WebGLRenderer = WebGLRenderer;
@@ -7546,6 +7471,22 @@ var Shader = (function() {
          */
         scope._worldMatrix = mat4.create();
 
+        /**
+         * @member global.DisplayObject#_composedTint
+         * @desc Holds the tint composed through all parent tints
+         * @type {Color}
+         * @private
+         */
+        scope._composedTint = new Color(1, 1, 1);
+
+        /**
+         * @member global.DisplayObject#_composedAlpha
+         * @desc Holds the alpha composed through all parent tints
+         * @type {Color}
+         * @private
+         */
+        scope._composedAlpha = 1;
+
         if (undefined === parameters) {
             parameters = {};
         }
@@ -8003,7 +7944,7 @@ var Shader = (function() {
                     }
                 }
 
-                // perform hallow searches
+                // perform shallow searches
                 for (var j = 0, jlen = shallowQueries.length; j < jlen; j++) {
                     var shallowQuery = shallowQueries[j];
 
@@ -9326,4 +9267,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Tue, 13 Aug 2013 09:11:19 -0700";
+var __buildTimestamp = "Wed, 14 Aug 2013 13:09:45 -0700";

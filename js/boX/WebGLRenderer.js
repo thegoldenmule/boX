@@ -155,65 +155,6 @@
         },
 
         /**
-         * Draws a RenderBatch to the screen.
-         *
-         * @param renderBatch
-         */
-        drawBatch: function(renderBatch) {
-            var context = this.getContext();
-
-            // set the program to use
-            var shader = renderBatch.getMaterial().shader;
-            shader.compile(context);
-            context.useProgram(shader.getShaderProgram());
-
-            // tell the shader to do its thang
-            shader.pushCustomUniforms(context);
-
-            // set projection
-            if (-1 !== shader.projectionMatrixUniformPointer) {
-                context.uniformMatrix4fv(shader.projectionMatrixUniformPointer, false, this.projectionMatrix);
-            }
-
-            // prepare material once
-            renderBatch.getMaterial().prepareTextures(context);
-            renderBatch.getMaterial().pushTextures(context, shader);
-
-            var displayObjects = renderBatch.getDisplayObjects();
-            for (var i = 0, len = displayObjects.length; i < len; i++) {
-                var displayObject = displayObjects[i];
-
-                // depth
-                if (-1 !== shader.depthUniformPointer) {
-                    context.uniform1f(shader.depthUniformPointer, displayObject.__depth);
-                }
-
-                // update + set transform
-                // TODO: possibly have a dirty flag?
-                if (-1 !== shader.modelMatrixUniformPointer) {
-                    context.uniformMatrix4fv(shader.modelMatrixUniformPointer, false, displayObject.recalculateWorldMatrix(__tempModelMatrix));
-                }
-
-                // color
-                if (-1 !== shader.colorUniformPointer) {
-                    var tint = displayObject.tint;
-                    __tempColor[0] = tint.r;
-                    __tempColor[1] = tint.g;
-                    __tempColor[2] = tint.b;
-                    __tempColor[3] = displayObject.alpha;
-                    context.uniform4fv(shader.colorUniformPointer, __tempColor);
-                }
-
-                // prepare + push buffers
-                displayObject.geometry.prepareBuffers(context);
-                displayObject.geometry.pushBuffers(context, shader);
-
-                // draw
-                displayObject.geometry.draw(context);
-            }
-        },
-
-        /**
          * Draws a single DisplayObject.
          *
          * @param displayObject
@@ -242,13 +183,17 @@
 
             // update + set transform
             if (-1 !== shader.modelMatrixUniformPointer) {
-                context.uniformMatrix4fv(shader.modelMatrixUniformPointer, false, displayObject.recalculateWorldMatrix());
+                context.uniformMatrix4fv(shader.modelMatrixUniformPointer, false, displayObject._worldMatrix);
             }
 
             // color
             if (-1 !== shader.colorUniformPointer) {
-                __tempColor[0] = __tempColor[1] = __tempColor[2] = __tempColor[3] = 1;
-                context.uniform4fv(shader.colorUniformPointer, composeColor(displayObject, __tempColor));
+                __tempColor[0] = displayObject._composedTint.r;
+                __tempColor[1] = displayObject._composedTint.g;
+                __tempColor[2] = displayObject._composedTint.b;
+                __tempColor[3] = displayObject._composedAlpha;
+
+                context.uniform4fv(shader.colorUniformPointer, __tempColor);
             }
 
             // prepare + push buffers
@@ -299,26 +244,6 @@
             };
         })()
     };
-
-    /**
-     * Composes a Color through the scene graph.
-     *
-     * @param displayObject
-     * @param out
-     * @returns {*}
-     */
-    function composeColor(displayObject, out) {
-        if (displayObject._parent && displayObject._parent !== displayObject) {
-            composeColor(displayObject._parent, out);
-        }
-
-        out[0] *= displayObject.tint.r;
-        out[1] *= displayObject.tint.g;
-        out[2] *= displayObject.tint.b;
-        out[3] *= displayObject.alpha;
-
-        return out;
-    }
 
     // export
     global.WebGLRenderer = WebGLRenderer;

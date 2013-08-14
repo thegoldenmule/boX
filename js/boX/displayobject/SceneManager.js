@@ -116,7 +116,7 @@
                     }
                 }
 
-                // perform hallow searches
+                // perform shallow searches
                 for (var j = 0, jlen = shallowQueries.length; j < jlen; j++) {
                     var shallowQuery = shallowQueries[j];
 
