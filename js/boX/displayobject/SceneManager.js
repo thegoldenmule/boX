@@ -108,6 +108,9 @@
                 if (recurse) {
                     var recursiveChildName = shallowQueries.shift();
 
+                    // retrieve the query
+                    //var queryObject = generateQuery(recursiveChildName);
+
                     var recursiveChild = recursiveFindChildByName(current, recursiveChildName);
                     if (null !== recursiveChild) {
                         current = recursiveChild;
@@ -135,6 +138,47 @@
             return current;
         }
     };
+
+    var nameQueryRegex = /([\w]+)((\[(\d)?:(\d)?\])|$)/;
+    var propertyQueryRegex = /\((@|(@@))([\w]+)(([<>]=?)|==)([\w]+)\)((\[(\d)?:(\d)?\])|$)/;
+
+    function generateQuery(value) {
+        var query = new Query(value);
+
+        // Cases:
+        // 1. name query
+        // 2. property query
+
+        var match = nameQueryRegex.exec(value);
+        if (null !== match) {
+            query.propName = "name";
+            query.operator = "==";
+            query.propValue = match[1];
+            query.isCollection = "" !== match[2];
+            query.startIndex = match[4];
+            query.endIndex = match[5];
+        } else {
+            match = propertyQueryRegex.exec(value);
+
+            if (null !== match) {
+                query.propName = match[3];
+                query.operator = match[4];
+                query.propValue = match[6];
+                query.isCollection = "" !== match[7];
+                query.startIndex = match[9];
+                query.endIndex = match[10];
+            } else {
+                return null;
+            }
+        }
+
+        return query;
+    }
+
+    function Query(value) {
+        this.value = value;
+
+    }
 
     function recursiveFindChildByName(child, name) {
         var newChild = child.getChildByName(name);
