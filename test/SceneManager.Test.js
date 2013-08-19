@@ -88,7 +88,24 @@ TestCase("SceneManager",
             assertTrue("TestFind: .f..z", -1 !== SceneManager.find(".f..z", displayObjects[4]).indexOf(displayObjects[25]));
         },
 
-        "testFindProp": function() {
+        "testFindByName": function() {
+            var engine = new Engine();
+            var displayObjects = createDisplayObjects(engine);
+
+            engine.getScene().root.addChild(displayObjects[0]);
+
+            // search by name
+            assertTrue("testFindProp: (@name==a)", -1 !== SceneManager.find("(@name==a)").indexOf(displayObjects[0]));
+            assertTrue("testFindProp: ..(@name==z)", -1 !== SceneManager.find("..(@name==z)").indexOf(displayObjects[25]));
+            assertTrue("testFindProp: (@name==a).(@name==b).(@name==c).(@name==d).(@name==e).(@name==f)", -1 !== SceneManager.find("(@name==a).(@name==b).(@name==c).(@name==d).(@name==e).(@name==f)").indexOf(displayObjects[5]));
+            assertTrue("testFindProp: (@name==a)..(@name==f)", -1 !== SceneManager.find("(@name==a)..(@name==f)").indexOf(displayObjects[5]));
+            assertTrue("testFindProp: (@name==a)..(@name==f).(@name==g)", -1 !== SceneManager.find("(@name==a)..(@name==f).(@name==g)").indexOf(displayObjects[6]));
+            assertTrue("testFindProp: ..(@name==f).(@name==g)", -1 !== SceneManager.find("..(@name==f).(@name==g)", displayObjects[2]).indexOf(displayObjects[6]));
+            assertTrue("testFindProp: ..(@name==f)..(@name==g)", -1 !== SceneManager.find("..(@name==f)..(@name==g)").indexOf(displayObjects[6]));
+            assertTrue("testFindProp: .(@name==f)..(@name==z)", -1 !== SceneManager.find(".(@name==f)..(@name==z)", displayObjects[4]).indexOf(displayObjects[25]));
+        },
+
+        "testFindByProp": function() {
             var engine = new Engine();
             var displayObjects = createDisplayObjects(engine);
 
@@ -115,15 +132,18 @@ TestCase("SceneManager",
                 occurrences[value]++;
             }
 
+            assertEquals("testFindByProp", displayObjects.length, SceneManager.find("..(@visible==true)").length);
+
             function find(value) {
-                var query = "..(@" + propName + "=" + value + ")[]";
-                assertEquals("TestFindProp: " + query, occurrences[value], SceneManager.find(query));
+                var query = "..(@" + propName + "==" + value + ")";
+                assertEquals(
+                    "TestFindProp: " + query,
+                    value in occurrences ? occurrences[value] : 0,
+                    SceneManager.find(query).length);
             }
 
-            /*
             for (var j = 0; j < max; j++) {
                 find(j);
             }
-            */
         }
     });

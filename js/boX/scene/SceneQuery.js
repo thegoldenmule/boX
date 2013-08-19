@@ -59,21 +59,28 @@
 
         // TODO: make this real...
         execute: function(object) {
+            // cast
+            var stringValue = this.propValue;
+            var typedValue = stringValue;
+            var type = typeof(object[this.propName]);
+            if ("boolean" === type) {
+                typedValue = Boolean(stringValue);
+            } else if ("number" === type) {
+                typedValue = parseFloat(stringValue);
+            }
+
+            // apply operator
             switch (this.operator) {
                 case "==":
-                    return object[this.propName] === this.propValue;
-
+                    return object[this.propName] === typedValue;
                 case "<=":
-                    return object[this.propName] <= this.propValue;
-
+                    return object[this.propName] <= typedValue;
                 case ">=":
-                    return object[this.propName] >= this.propValue;
-
+                    return object[this.propName] >= typedValue;
                 case "<":
-                    return object[this.propName] < this.propValue;
-
+                    return object[this.propName] < typedValue;
                 case ">":
-                    return object[this.propName] > this.propValue;
+                    return object[this.propName] > typedValue;
             }
 
             return false;

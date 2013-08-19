@@ -9049,21 +9049,28 @@ ImageLoader.loadResources = function(urls, callback) {
 
         // TODO: make this real...
         execute: function(object) {
+            // cast
+            var stringValue = this.propValue;
+            var typedValue = stringValue;
+            var type = typeof(object[this.propName]);
+            if ("boolean" === type) {
+                typedValue = Boolean(stringValue);
+            } else if ("number" === type) {
+                typedValue = parseFloat(stringValue);
+            }
+
+            // apply operator
             switch (this.operator) {
                 case "==":
-                    return object[this.propName] === this.propValue;
-
+                    return object[this.propName] === typedValue;
                 case "<=":
-                    return object[this.propName] <= this.propValue;
-
+                    return object[this.propName] <= typedValue;
                 case ">=":
-                    return object[this.propName] >= this.propValue;
-
+                    return object[this.propName] >= typedValue;
                 case "<":
-                    return object[this.propName] < this.propValue;
-
+                    return object[this.propName] < typedValue;
                 case ">":
-                    return object[this.propName] > this.propValue;
+                    return object[this.propName] > typedValue;
             }
 
             return false;
@@ -9376,4 +9383,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Mon, 19 Aug 2013 09:46:29 -0700";
+var __buildTimestamp = "Mon, 19 Aug 2013 12:19:18 -0700";
