@@ -1,3 +1,21 @@
+function createDisplayObjects(engine) {
+    var letters = "abcdefghijklmnopqrstuvwxyz".split("");
+
+    var displayObjects = letters.map(
+        function(name) {
+            return new DisplayObject({name:name});
+        });
+
+    var last = displayObjects[0];
+    for (var i = 1; i < displayObjects.length; i++) {
+        last.addChild(displayObjects[i]);
+
+        last = displayObjects[i];
+    }
+
+    return displayObjects;
+}
+
 TestCase("SceneManager",
     {
         "testAdd": function() {
@@ -48,34 +66,64 @@ TestCase("SceneManager",
 
         "testFind": function() {
             var engine = new Engine();
+            var displayObjects = createDisplayObjects(engine);
 
-            var letters = "abcdefghijklmnopqrstuvwxyz".split("");
+            // searches over disconnected graph
+            assertTrue("TestFind:", 0 === SceneManager.find().length);
+            assertTrue("TestFind:", 0 === SceneManager.find("").length);
+            assertTrue("TestFind: a", 0 === SceneManager.find("a").length);
+            assertTrue("TestFind: b", 0 === SceneManager.find("b").length);
 
-            var displayObjects = letters.map(
-                function(name) {
-                    return new DisplayObject({name:name});
-                });
-
-            var last = displayObjects[0];
-            for (var i = 1; i < displayObjects.length; i++) {
-                last.addChild(displayObjects[i]);
-
-                last = displayObjects[i];
-            }
-
-            assertEquals("TestFind:", null, SceneManager.find());
-            assertEquals("TestFind:", null, SceneManager.find(""));
-            assertEquals("TestFind: a", null, SceneManager.find("a"));
-            assertEquals("TestFind: b", null, SceneManager.find("b"));
+            // attach the first display object
             engine.getScene().root.addChild(displayObjects[0]);
 
-            assertEquals("TestFind: a", displayObjects[0], SceneManager.find("a"));
-            assertEquals("TestFind: z", displayObjects[25], SceneManager.find("..z"));
-            assertEquals("TestFind: a.b.c.d.e.f", displayObjects[5], SceneManager.find("a.b.c.d.e.f"));
-            assertEquals("TestFind: a..f", displayObjects[5], SceneManager.find("a..f"));
-            assertEquals("TestFind: a..f.g", displayObjects[6], SceneManager.find("a..f.g"));
-            assertEquals("TestFind: ..f.g", displayObjects[6], SceneManager.find("..f.g", displayObjects[2]));
-            assertEquals("TestFind: ..f..g", displayObjects[6], SceneManager.find("..f..g"));
-            assertEquals("TestFind: .f..z", displayObjects[25], SceneManager.find(".f..z", displayObjects[4]));
+            // searches over connected graph
+            assertTrue("TestFind: a", -1 !== SceneManager.find("a").indexOf(displayObjects[0]));
+            assertTrue("TestFind: z", -1 !== SceneManager.find("..z").indexOf(displayObjects[25]));
+            assertTrue("TestFind: a.b.c.d.e.f", -1 !== SceneManager.find("a.b.c.d.e.f").indexOf(displayObjects[5]));
+            assertTrue("TestFind: a..f", -1 !== SceneManager.find("a..f").indexOf(displayObjects[5]));
+            assertTrue("TestFind: a..f.g", -1 !== SceneManager.find("a..f.g").indexOf(displayObjects[6]));
+            assertTrue("TestFind: ..f.g", -1 !== SceneManager.find("..f.g", displayObjects[2]).indexOf(displayObjects[6]));
+            assertTrue("TestFind: ..f..g", -1 !== SceneManager.find("..f..g").indexOf(displayObjects[6]));
+            assertTrue("TestFind: .f..z", -1 !== SceneManager.find(".f..z", displayObjects[4]).indexOf(displayObjects[25]));
+        },
+
+        "testFindProp": function() {
+            var engine = new Engine();
+            var displayObjects = createDisplayObjects(engine);
+
+            var max = 100;
+
+            // set some property
+            var propName = "testProp";
+            var props = [];
+            displayObjects.forEach(function(item) {
+                var value = item[propName] = Math.randomInt(0, max);
+                props.push(value);
+            });
+
+            engine.getScene().root.addChild(displayObjects[0]);
+
+            // count occurrences
+            var occurrences = {};
+            for (var i = 0; i < props.length; i++) {
+                var value = props[i];
+                if (!(value in occurrences)) {
+                    occurrences[value] = 0;
+                }
+
+                occurrences[value]++;
+            }
+
+            function find(value) {
+                var query = "..(@" + propName + "=" + value + ")[]";
+                assertEquals("TestFindProp: " + query, occurrences[value], SceneManager.find(query));
+            }
+
+            /*
+            for (var j = 0; j < max; j++) {
+                find(j);
+            }
+            */
         }
     });

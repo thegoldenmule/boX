@@ -60,7 +60,7 @@
 
         /**
          * @desc Basic query method to find collections of objects.
-         * @param {Array} query A query is made up of DisplayObject names and
+         * @param {String} query A query is made up of DisplayObject names and
          * searches over either immediate children or descendants at arbitrary
          * depth. A search over immediate children is given by "." while a
          * recursive search is given by "..". An example follows.
@@ -85,18 +85,23 @@
             }
 
             if (!query){
-                return null;
+                return [];
             }
+             // grab current context
+            var current = !context ? [_root] : [context];
 
-            var current = !context ? _root : context;
+            // define vars here
+            var i, j, k, iLength, jLength, kLength;
+            var sceneQuery;
+            var results;
 
-            // split at recursive searches
-            var recurse = false;
+            // split at recursive queries
+            var recur = false;
             var recursiveQueries = query.split("..");
-            for (var i = 0, ilen = recursiveQueries.length; i < ilen; i++) {
+            for (i = 0, iLength = recursiveQueries.length; i < iLength; i++) {
                 var recursiveQuery = recursiveQueries[i];
 
-                // split into shallow searches
+                // split into shallow queries
                 var shallowQueries = recursiveQuery.split(".");
 
                 // ? I don't understand why split works this way.
@@ -104,96 +109,74 @@
                     shallowQueries.shift();
                 }
 
-                // recursive find
-                if (recurse) {
-                    var recursiveChildName = shallowQueries.shift();
+                // recursive query
+                if (recur) {
+                    var recursiveQueryString = shallowQueries.shift();
 
-                    // retrieve the query
-                    //var queryObject = generateQuery(recursiveChildName);
+                    // create query
+                    sceneQuery = new SceneQuery(recursiveQueryString);
 
-                    var recursiveChild = recursiveFindChildByName(current, recursiveChildName);
-                    if (null !== recursiveChild) {
-                        current = recursiveChild;
+                    // execute query on each of the current nodes
+                    results = [];
+                    for (k = 0, kLength = current.length; k < kLength; k++) {
+                        executeQueryRecursive(current[k], sceneQuery, results);
+                    }
+
+                    if (0 !== results.length) {
+                        current = results;
                     } else {
-                        return null;
+                        return [];
                     }
                 }
 
                 // perform shallow searches
-                for (var j = 0, jlen = shallowQueries.length; j < jlen; j++) {
-                    var shallowQuery = shallowQueries[j];
+                for (j = 0, jLength = shallowQueries.length; j < jLength; j++) {
+                    var shallowQueryString = shallowQueries[j];
 
-                    // get immediate child by name
-                    var child = current.getChildByName(shallowQuery);
-                    if (null !== child) {
-                        current = child;
+                    // create query
+                    sceneQuery = new SceneQuery(shallowQueryString);
+
+                    // execute query on each of the current nodes
+                    results = [];
+                    for (k = 0, kLength = current.length; k < kLength; k++) {
+                        executeQuery(current[k], sceneQuery, results);
+                    }
+
+                    if (0 !== results.length) {
+                        current = results;
                     } else {
-                        return null;
+                        return [];
                     }
                 }
 
-                recurse = 0 === recursiveQuery.length || 0 === i % 2;
+                recur = 0 === recursiveQuery.length || 0 === i % 2;
             }
 
             return current;
         }
     };
 
-    var nameQueryRegex = /([\w]+)((\[(\d)?:(\d)?\])|$)/;
-    var propertyQueryRegex = /\((@|(@@))([\w]+)(([<>]=?)|==)([\w]+)\)((\[(\d)?:(\d)?\])|$)/;
-
-    function generateQuery(value) {
-        var query = new Query(value);
-
-        // Cases:
-        // 1. name query
-        // 2. property query
-
-        var match = nameQueryRegex.exec(value);
-        if (null !== match) {
-            query.propName = "name";
-            query.operator = "==";
-            query.propValue = match[1];
-            query.isCollection = "" !== match[2];
-            query.startIndex = match[4];
-            query.endIndex = match[5];
-        } else {
-            match = propertyQueryRegex.exec(value);
-
-            if (null !== match) {
-                query.propName = match[3];
-                query.operator = match[4];
-                query.propValue = match[6];
-                query.isCollection = "" !== match[7];
-                query.startIndex = match[9];
-                query.endIndex = match[10];
-            } else {
-                return null;
+    function executeQueryRecursive(node, query, results) {
+        var newChild;
+        var children = node.getChildren();
+        for (var i = 0, len = children.length; i < len; i++) {
+            newChild = children[i];
+            if (query.execute(newChild)) {
+                results.push(newChild);
             }
-        }
 
-        return query;
+            executeQueryRecursive(newChild, query, results);
+        }
     }
 
-    function Query(value) {
-        this.value = value;
-
-    }
-
-    function recursiveFindChildByName(child, name) {
-        var newChild = child.getChildByName(name);
-        if (null === newChild) {
-            var children = child.getChildren();
-            for (var i = 0, len = children.length; i < len; i++) {
-                newChild = recursiveFindChildByName(children[i], name);
-
-                if (null !== newChild) {
-                    return newChild;
-                }
+    function executeQuery(node, query, results) {
+        var children = node.getChildren();
+        for (var i = 0, len = children.length; i < len; i++) {
+            var newChild = children[i];
+            if (query.execute(newChild)) {
+                results.push(newChild);
             }
         }
-
-        return newChild;
     }
 
 })(this);

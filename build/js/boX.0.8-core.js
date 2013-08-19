@@ -741,119 +741,6 @@ Engine.prototype = {
 })(this);
 /**
  * Author: thegoldenmule
- * Date: 3/10/13
- */
-
-(function (global) {
-    "use strict";
-
-    var Signal = signals.Signal;
-
-    var __totalBatches = 0,
-        __total;
-
-    var Scene = function () {
-        var scope = this;
-
-        scope.root = new DisplayObject();
-        scope.root._parent = scope.root;
-
-        // initialize the SceneManager
-        SceneManager.__initialize(scope.root);
-
-        scope.showBoundingBoxes = false;
-
-        scope.update = function(dt, renderer) {
-            // traverse scene and render
-
-            // TODO: More analysis needs to be done here!
-            //
-            // TODO: More than likely, there are better ways to do this so we
-            // TODO: don't have to figure all this stuff out every tick.
-            var children = [];
-            getChildrenRecursively(this.root, children, 0, 100);
-
-            // we now have a set of batches and a list of DisplayObjects
-            var context = renderer.getContext();
-
-            // render the non-batched elements on top
-            context.disable(context.DEPTH_TEST);
-            for (var i = 0, len = children.length; i < len; i++) {
-                var child = children[i];
-
-                var localMatrix = child.transform.recalculateMatrix();
-
-                // prepend the parent
-                mat4.multiply(child._worldMatrix, child.getParent()._worldMatrix, localMatrix);
-
-                // multiply parent tint with local tint
-                // TODO: this method is difficult to understand
-                child._composedTint.r = child.tint.r * child.getParent()._composedTint.r;
-                child._composedTint.g = child.tint.g * child.getParent()._composedTint.g;
-                child._composedTint.b = child.tint.b * child.getParent()._composedTint.b;
-
-                // multiply parent alpha with local
-                child._composedAlpha = child.alpha * child.getParent()._composedAlpha;
-
-                renderer.drawDisplayObject(children[i]);
-            }
-
-            // render bounding boxes
-            if (scope.showBoundingBoxes) {
-                for (i = 0; i < len; i++) {
-                    renderer.drawBoundingBox(children[i]);
-                }
-            }
-        };
-
-        function getChildrenRecursively(node, list, depthMin, depthMax) {
-            var children = node._children;
-            var len = children.length;
-            if (0 === len) {
-                return;
-            }
-
-            var diff = (depthMax - depthMin) / len;
-            var diffMin = diff / 10;
-            var diffMax = 9 * diff / 10;
-            for (var i = 0; i < len; i++) {
-                var child = children[i];
-
-                // worldmatrix -> identity
-                mat4.identity(child._worldMatrix);
-
-                // reset tint
-                child._composedTint.white();
-
-                // reset alpha
-                child._composedAlpha = 1;
-
-                // invisible!
-                if (!child.visible) {
-                    continue;
-                }
-
-                // set depth
-                child.__depth = depthMin + diff * i;
-
-                list.push(child);
-
-                getChildrenRecursively(child, list, child.__depth + diffMin, child.__depth + diffMax);
-            }
-        }
-
-        return scope;
-    };
-
-    Scene.prototype = {
-        constructor : Scene
-    };
-
-    // export
-    global.Scene = Scene;
-})(this);
-/**
- * Author: thegoldenmule
  * Date: 2/2/13
  * Time: 8:26 PM
  */
@@ -2710,206 +2597,6 @@ var Shader = (function() {
 })(this);
 /**
  * Author: thegoldenmule
- * Date: 8/11/13
- */
-
-(function (global) {
-    "use strict";
-
-    var _root = null,
-        _objectsById = {};
-
-    /**
-     * @class SceneManager
-     * @desc Manages all objects in the scene and provides an interface for
-     * querying.
-     * @returns {SceneManager}
-     * @constructor
-     */
-    global.SceneManager = {
-        /**
-         * @desc Initializes the SceneManager with the root DisplayObject.
-         * @param {DisplayObject} displayObject The root DisplayObject.
-         *
-         * @private
-         */
-        __initialize: function(displayObject) {
-            _root = displayObject;
-        },
-
-        /**
-         * @desc Adds a DisplayObject to the SceneManager for management.
-         * @param {DisplayObject} displayObject The DisplayObject instance to
-         * add.
-         *
-         * @private
-         */
-        __addDisplayObject: function(displayObject) {
-            _objectsById[displayObject.getUniqueId()] = displayObject;
-        },
-
-        /**
-         * @desc Removes a DisplayObject from the SceneManager.
-         * @param {DisplayObject} displayObject The DisplayObject instance to
-         * remove.
-         *
-         * @private
-         */
-        __removeDisplayObject: function(displayObject) {
-            delete _objectsById[displayObject.getUniqueId()];
-        },
-
-        /**
-         * @desc Retrieves a DisplayObject from the scene by id.
-         * @param {number} id The integral id of the DisplayObject to retrieve.
-         * @return {DisplayObject}
-         */
-        getById: function(id) {
-            return id in _objectsById ? _objectsById[id] : null;
-        },
-
-        /**
-         * @desc Basic query method to find collections of objects.
-         * @param {Array} query A query is made up of DisplayObject names and
-         * searches over either immediate children or descendants at arbitrary
-         * depth. A search over immediate children is given by "." while a
-         * recursive search is given by "..". An example follows.
-         * @param {DisplayObject} context The DisplayObject to start the search from.
-         * If no context is provided, the search starts at the top of the graph,
-         * i.e. the scene root.
-         *
-         * @example
-         * // for root -> a -> b -> c -> ... -> z
-         * var a = SceneManager.find("a");
-         * var z = SceneManager.find("..z");
-         * var f = SceneManager.find("a.b.c.d.e.f");
-         * var f = SceneManager.find("a..f");
-         * var g = SceneManager.find("a..f.g");
-         * var g = SceneManager.find("..f.g", c);
-         * var g = SceneManager.find("..f..g");
-         * var z = SceneManager.find(".f..z", e);
-         */
-        find: function(query, context) {
-            if (!_root) {
-                throw new Error("Must initialize SceneManager before calling find.");
-            }
-
-            if (!query){
-                return null;
-            }
-
-            var current = !context ? _root : context;
-
-            // split at recursive searches
-            var recurse = false;
-            var recursiveQueries = query.split("..");
-            for (var i = 0, ilen = recursiveQueries.length; i < ilen; i++) {
-                var recursiveQuery = recursiveQueries[i];
-
-                // split into shallow searches
-                var shallowQueries = recursiveQuery.split(".");
-
-                // ? I don't understand why split works this way.
-                if ("" === shallowQueries[0]) {
-                    shallowQueries.shift();
-                }
-
-                // recursive find
-                if (recurse) {
-                    var recursiveChildName = shallowQueries.shift();
-
-                    // retrieve the query
-                    //var queryObject = generateQuery(recursiveChildName);
-
-                    var recursiveChild = recursiveFindChildByName(current, recursiveChildName);
-                    if (null !== recursiveChild) {
-                        current = recursiveChild;
-                    } else {
-                        return null;
-                    }
-                }
-
-                // perform shallow searches
-                for (var j = 0, jlen = shallowQueries.length; j < jlen; j++) {
-                    var shallowQuery = shallowQueries[j];
-
-                    // get immediate child by name
-                    var child = current.getChildByName(shallowQuery);
-                    if (null !== child) {
-                        current = child;
-                    } else {
-                        return null;
-                    }
-                }
-
-                recurse = 0 === recursiveQuery.length || 0 === i % 2;
-            }
-
-            return current;
-        }
-    };
-
-    var nameQueryRegex = /([\w]+)((\[(\d)?:(\d)?\])|$)/;
-    var propertyQueryRegex = /\((@|(@@))([\w]+)(([<>]=?)|==)([\w]+)\)((\[(\d)?:(\d)?\])|$)/;
-
-    function generateQuery(value) {
-        var query = new Query(value);
-
-        // Cases:
-        // 1. name query
-        // 2. property query
-
-        var match = nameQueryRegex.exec(value);
-        if (null !== match) {
-            query.propName = "name";
-            query.operator = "==";
-            query.propValue = match[1];
-            query.isCollection = "" !== match[2];
-            query.startIndex = match[4];
-            query.endIndex = match[5];
-        } else {
-            match = propertyQueryRegex.exec(value);
-
-            if (null !== match) {
-                query.propName = match[3];
-                query.operator = match[4];
-                query.propValue = match[6];
-                query.isCollection = "" !== match[7];
-                query.startIndex = match[9];
-                query.endIndex = match[10];
-            } else {
-                return null;
-            }
-        }
-
-        return query;
-    }
-
-    function Query(value) {
-        this.value = value;
-
-    }
-
-    function recursiveFindChildByName(child, name) {
-        var newChild = child.getChildByName(name);
-        if (null === newChild) {
-            var children = child.getChildren();
-            for (var i = 0, len = children.length; i < len; i++) {
-                newChild = recursiveFindChildByName(children[i], name);
-
-                if (null !== newChild) {
-                    return newChild;
-                }
-            }
-        }
-
-        return newChild;
-    }
-
-})(this);
-
-/**
- * Author: thegoldenmule
  * Date: 3/10/13
  */
 
@@ -3886,6 +3573,384 @@ ImageLoader.loadResources = function(urls, callback) {
     };
 
     global.ParticleEmitterGeometry = ParticleEmitterGeometry;
+})(this);
+/**
+ * Author: thegoldenmule
+ * Date: 3/10/13
+ */
+
+(function (global) {
+    "use strict";
+
+    var Signal = signals.Signal;
+
+    var __totalBatches = 0,
+        __total;
+
+    var Scene = function () {
+        var scope = this;
+
+        scope.root = new DisplayObject();
+        scope.root._parent = scope.root;
+
+        // initialize the SceneManager
+        SceneManager.__initialize(scope.root);
+
+        scope.showBoundingBoxes = false;
+
+        scope.update = function(dt, renderer) {
+            // traverse scene and render
+
+            // TODO: More analysis needs to be done here!
+            //
+            // TODO: More than likely, there are better ways to do this so we
+            // TODO: don't have to figure all this stuff out every tick.
+            var children = [];
+            getChildrenRecursively(this.root, children, 0, 100);
+
+            // we now have a set of batches and a list of DisplayObjects
+            var context = renderer.getContext();
+
+            // render the non-batched elements on top
+            context.disable(context.DEPTH_TEST);
+            for (var i = 0, len = children.length; i < len; i++) {
+                var child = children[i];
+
+                var localMatrix = child.transform.recalculateMatrix();
+
+                // prepend the parent
+                mat4.multiply(child._worldMatrix, child.getParent()._worldMatrix, localMatrix);
+
+                // multiply parent tint with local tint
+                // TODO: this method is difficult to understand
+                child._composedTint.r = child.tint.r * child.getParent()._composedTint.r;
+                child._composedTint.g = child.tint.g * child.getParent()._composedTint.g;
+                child._composedTint.b = child.tint.b * child.getParent()._composedTint.b;
+
+                // multiply parent alpha with local
+                child._composedAlpha = child.alpha * child.getParent()._composedAlpha;
+
+                renderer.drawDisplayObject(children[i]);
+            }
+
+            // render bounding boxes
+            if (scope.showBoundingBoxes) {
+                for (i = 0; i < len; i++) {
+                    renderer.drawBoundingBox(children[i]);
+                }
+            }
+        };
+
+        function getChildrenRecursively(node, list, depthMin, depthMax) {
+            var children = node._children;
+            var len = children.length;
+            if (0 === len) {
+                return;
+            }
+
+            var diff = (depthMax - depthMin) / len;
+            var diffMin = diff / 10;
+            var diffMax = 9 * diff / 10;
+            for (var i = 0; i < len; i++) {
+                var child = children[i];
+
+                // worldmatrix -> identity
+                mat4.identity(child._worldMatrix);
+
+                // reset tint
+                child._composedTint.white();
+
+                // reset alpha
+                child._composedAlpha = 1;
+
+                // invisible!
+                if (!child.visible) {
+                    continue;
+                }
+
+                // set depth
+                child.__depth = depthMin + diff * i;
+
+                list.push(child);
+
+                getChildrenRecursively(child, list, child.__depth + diffMin, child.__depth + diffMax);
+            }
+        }
+
+        return scope;
+    };
+
+    Scene.prototype = {
+        constructor : Scene
+    };
+
+    // export
+    global.Scene = Scene;
+})(this);
+/**
+ * Author: thegoldenmule
+ * Date: 8/11/13
+ */
+
+(function (global) {
+    "use strict";
+
+    var _root = null,
+        _objectsById = {};
+
+    /**
+     * @class SceneManager
+     * @desc Manages all objects in the scene and provides an interface for
+     * querying.
+     * @returns {SceneManager}
+     * @constructor
+     */
+    global.SceneManager = {
+        /**
+         * @desc Initializes the SceneManager with the root DisplayObject.
+         * @param {DisplayObject} displayObject The root DisplayObject.
+         *
+         * @private
+         */
+        __initialize: function(displayObject) {
+            _root = displayObject;
+        },
+
+        /**
+         * @desc Adds a DisplayObject to the SceneManager for management.
+         * @param {DisplayObject} displayObject The DisplayObject instance to
+         * add.
+         *
+         * @private
+         */
+        __addDisplayObject: function(displayObject) {
+            _objectsById[displayObject.getUniqueId()] = displayObject;
+        },
+
+        /**
+         * @desc Removes a DisplayObject from the SceneManager.
+         * @param {DisplayObject} displayObject The DisplayObject instance to
+         * remove.
+         *
+         * @private
+         */
+        __removeDisplayObject: function(displayObject) {
+            delete _objectsById[displayObject.getUniqueId()];
+        },
+
+        /**
+         * @desc Retrieves a DisplayObject from the scene by id.
+         * @param {number} id The integral id of the DisplayObject to retrieve.
+         * @return {DisplayObject}
+         */
+        getById: function(id) {
+            return id in _objectsById ? _objectsById[id] : null;
+        },
+
+        /**
+         * @desc Basic query method to find collections of objects.
+         * @param {String} query A query is made up of DisplayObject names and
+         * searches over either immediate children or descendants at arbitrary
+         * depth. A search over immediate children is given by "." while a
+         * recursive search is given by "..". An example follows.
+         * @param {DisplayObject} context The DisplayObject to start the search from.
+         * If no context is provided, the search starts at the top of the graph,
+         * i.e. the scene root.
+         *
+         * @example
+         * // for root -> a -> b -> c -> ... -> z
+         * var a = SceneManager.find("a");
+         * var z = SceneManager.find("..z");
+         * var f = SceneManager.find("a.b.c.d.e.f");
+         * var f = SceneManager.find("a..f");
+         * var g = SceneManager.find("a..f.g");
+         * var g = SceneManager.find("..f.g", c);
+         * var g = SceneManager.find("..f..g");
+         * var z = SceneManager.find(".f..z", e);
+         */
+        find: function(query, context) {
+            if (!_root) {
+                throw new Error("Must initialize SceneManager before calling find.");
+            }
+
+            if (!query){
+                return [];
+            }
+             // grab current context
+            var current = !context ? [_root] : [context];
+
+            // define vars here
+            var i, j, k, iLength, jLength, kLength;
+            var sceneQuery;
+            var results;
+
+            // split at recursive queries
+            var recur = false;
+            var recursiveQueries = query.split("..");
+            for (i = 0, iLength = recursiveQueries.length; i < iLength; i++) {
+                var recursiveQuery = recursiveQueries[i];
+
+                // split into shallow queries
+                var shallowQueries = recursiveQuery.split(".");
+
+                // ? I don't understand why split works this way.
+                if ("" === shallowQueries[0]) {
+                    shallowQueries.shift();
+                }
+
+                // recursive query
+                if (recur) {
+                    var recursiveQueryString = shallowQueries.shift();
+
+                    // create query
+                    sceneQuery = new SceneQuery(recursiveQueryString);
+
+                    // execute query on each of the current nodes
+                    results = [];
+                    for (k = 0, kLength = current.length; k < kLength; k++) {
+                        executeQueryRecursive(current[k], sceneQuery, results);
+                    }
+
+                    if (0 !== results.length) {
+                        current = results;
+                    } else {
+                        return [];
+                    }
+                }
+
+                // perform shallow searches
+                for (j = 0, jLength = shallowQueries.length; j < jLength; j++) {
+                    var shallowQueryString = shallowQueries[j];
+
+                    // create query
+                    sceneQuery = new SceneQuery(shallowQueryString);
+
+                    // execute query on each of the current nodes
+                    results = [];
+                    for (k = 0, kLength = current.length; k < kLength; k++) {
+                        executeQuery(current[k], sceneQuery, results);
+                    }
+
+                    if (0 !== results.length) {
+                        current = results;
+                    } else {
+                        return [];
+                    }
+                }
+
+                recur = 0 === recursiveQuery.length || 0 === i % 2;
+            }
+
+            return current;
+        }
+    };
+
+    function executeQueryRecursive(node, query, results) {
+        var newChild;
+        var children = node.getChildren();
+        for (var i = 0, len = children.length; i < len; i++) {
+            newChild = children[i];
+            if (query.execute(newChild)) {
+                results.push(newChild);
+            }
+
+            executeQueryRecursive(newChild, query, results);
+        }
+    }
+
+    function executeQuery(node, query, results) {
+        var children = node.getChildren();
+        for (var i = 0, len = children.length; i < len; i++) {
+            var newChild = children[i];
+            if (query.execute(newChild)) {
+                results.push(newChild);
+            }
+        }
+    }
+
+})(this);
+
+(function (global) {
+    "use strict";
+
+    var nameQueryRegex = /([\w]+)((\[(\d)?:(\d)?\])|$)/;
+    var propertyQueryRegex = /\((@|(@@))([\w]+)(([<>]=?)|==)([\w]+)\)((\[(\d)?:(\d)?\])|$)/;
+
+    /**
+     * @class SceneQuery
+     * @desc Tokenizes a single query string.
+     * @param {String} The query string to tokenize.
+     *
+     * @constructor
+     */
+    global.SceneQuery = function(value) {
+        var scope = this;
+
+        scope.value = value;
+        scope.propName = null;
+        scope.operator = null;
+        scope.propValue = null;
+        scope.startIndex = null;
+        scope.endIndex = null;
+
+        scope.isValid = false;
+
+        // Cases:
+        // 1. name query
+        // 2. property query
+
+        var match = nameQueryRegex.exec(value);
+        if (null !== match) {
+            scope.propName = "name";
+            scope.operator = "==";
+            scope.propValue = match[1];
+            scope.isCollection = "" !== match[2];
+            scope.startIndex = match[4];
+            scope.endIndex = match[5];
+
+            scope.isValid = true;
+        } else {
+            match = propertyQueryRegex.exec(value);
+
+            if (null !== match) {
+                scope.propName = match[3];
+                scope.operator = match[4];
+                scope.propValue = match[6];
+                scope.startIndex = match[9];
+                scope.endIndex = match[10];
+
+                scope.isValid = true;
+            }
+        }
+
+        return scope;
+    };
+
+    global.SceneQuery.prototype = {
+        constructor: global.SceneQuery,
+
+        // TODO: make this real...
+        execute: function(object) {
+            switch (this.operator) {
+                case "==":
+                    return object[this.propName] === this.propValue;
+
+                case "<=":
+                    return object[this.propName] <= this.propValue;
+
+                case ">=":
+                    return object[this.propName] >= this.propValue;
+
+                case "<":
+                    return object[this.propName] < this.propValue;
+
+                case ">":
+                    return object[this.propName] > this.propValue;
+            }
+
+            return false;
+        }
+    };
 })(this);
 /**
  * Author: thegoldenmule
