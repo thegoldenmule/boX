@@ -145,5 +145,32 @@ TestCase("SceneManager",
             for (var j = 0; j < max; j++) {
                 find(j);
             }
+        },
+
+        "testCombinations": function() {
+            var engine = new Engine();
+            var displayObjects = createDisplayObjects(engine);
+            engine.getScene().root.addChild(displayObjects[0]);
+
+            function find(query, values) {
+                var results = SceneManager.find(query);
+
+                assertEquals("testCombinations: " + query, values.length, results.length);
+
+                for (var i = 0; i < values.length; i++) {
+                    assertTrue("testCombinations: " + query, -1 !== results.indexOf(values[i]));
+                }
+            }
+
+            find("a.b..(@visible==true).(@name==z)", [displayObjects[25]]);
+            find("a.b..(@visible==true)..(@name==z)", [displayObjects[25]]);
+            find("..(@visible==true)..(@name==z)", [displayObjects[25]]);
+            find("..(@test==true)", []);
+
+            var testers = displayObjects.slice(2, Math.randomInt(5, 15));
+            testers.forEach(function(tester) {
+                tester.testProp = 10;
+            });
+            find("..(@testProp>0)", testers);
         }
     });

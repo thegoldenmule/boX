@@ -8991,9 +8991,6 @@ ImageLoader.loadResources = function(urls, callback) {
 (function (global) {
     "use strict";
 
-    var nameQueryRegex = /([\w]+)((\[(\d)?:(\d)?\])|$)/;
-    var propertyQueryRegex = /\((@|(@@))([\w]+)(([<>]=?)|==)([\w]+)\)((\[(\d)?:(\d)?\])|$)/;
-
     /**
      * @class SceneQuery
      * @desc Tokenizes a single query string.
@@ -9017,7 +9014,7 @@ ImageLoader.loadResources = function(urls, callback) {
         // 1. name query
         // 2. property query
 
-        var match = nameQueryRegex.exec(value);
+        var match = global.SceneQuery.NAME_QUERY_REGEX.exec(value);
         if (null !== match) {
             scope.propName = "name";
             scope.operator = "==";
@@ -9028,7 +9025,7 @@ ImageLoader.loadResources = function(urls, callback) {
 
             scope.isValid = true;
         } else {
-            match = propertyQueryRegex.exec(value);
+            match = global.SceneQuery.PROPERTY_QUERY_REGEX.exec(value);
 
             if (null !== match) {
                 scope.propName = match[3];
@@ -9043,6 +9040,9 @@ ImageLoader.loadResources = function(urls, callback) {
 
         return scope;
     };
+
+    global.SceneQuery.NAME_QUERY_REGEX = /([\w]+)((\[(\d)?:(\d)?\])|$)/;
+    global.SceneQuery.PROPERTY_QUERY_REGEX = /\((@|(@@))([\w]+)\s*(([<>]=?)|==)\s*([\w]+)\)((\[(\d)?:(\d)?\])|$)/;
 
     global.SceneQuery.prototype = {
         constructor: global.SceneQuery,
@@ -9383,4 +9383,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Mon, 19 Aug 2013 12:19:18 -0700";
+var __buildTimestamp = "Wed, 21 Aug 2013 14:42:08 -0700";

@@ -1,9 +1,6 @@
 (function (global) {
     "use strict";
 
-    var nameQueryRegex = /([\w]+)((\[(\d)?:(\d)?\])|$)/;
-    var propertyQueryRegex = /\((@|(@@))([\w]+)(([<>]=?)|==)([\w]+)\)((\[(\d)?:(\d)?\])|$)/;
-
     /**
      * @class SceneQuery
      * @desc Tokenizes a single query string.
@@ -27,7 +24,7 @@
         // 1. name query
         // 2. property query
 
-        var match = nameQueryRegex.exec(value);
+        var match = global.SceneQuery.NAME_QUERY_REGEX.exec(value);
         if (null !== match) {
             scope.propName = "name";
             scope.operator = "==";
@@ -38,7 +35,7 @@
 
             scope.isValid = true;
         } else {
-            match = propertyQueryRegex.exec(value);
+            match = global.SceneQuery.PROPERTY_QUERY_REGEX.exec(value);
 
             if (null !== match) {
                 scope.propName = match[3];
@@ -53,6 +50,9 @@
 
         return scope;
     };
+
+    global.SceneQuery.NAME_QUERY_REGEX = /([\w]+)((\[(\d)?:(\d)?\])|$)/;
+    global.SceneQuery.PROPERTY_QUERY_REGEX = /\((@|(@@))([\w]+)\s*(([<>]=?)|==)\s*([\w]+)\)((\[(\d)?:(\d)?\])|$)/;
 
     global.SceneQuery.prototype = {
         constructor: global.SceneQuery,

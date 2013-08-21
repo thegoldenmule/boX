@@ -1,5 +1,5 @@
-var nameQueryRegex = /([\w]+)((\[(\d)?:(\d)?\])|$)/;
-var propertyQueryRegex = /\((@|(@@))([\w]+)(([<>]=?)|==)([\w]+)\)((\[(\d)?:(\d)?\])|$)/;
+var nameQueryRegex = SceneQuery.NAME_QUERY_REGEX;
+var propertyQueryRegex = SceneQuery.PROPERTY_QUERY_REGEX;
 
 TestCase(
     "boQL-RegexTest",
@@ -93,6 +93,9 @@ TestCase(
         "testPropertyQueryConstruction" : function() {
             [
                 ["(@prop==value)", false, false, "prop", "==", "value", 0, -1],
+                ["(@prop ==value)", false, false, "prop", "==", "value", 0, -1],
+                ["(@prop== value)", false, false, "prop", "==", "value", 0, -1],
+                ["(@prop == value)", false, false, "prop", "==", "value", 0, -1],
                 ["(@prop>=value)", false, false, "prop", ">=", "value", 0, -1],
                 ["(@prop<=value)", false, false, "prop", "<=", "value", 0, -1],
                 ["(@prop>value)", false, false, "prop", ">", "value", 0, -1],
