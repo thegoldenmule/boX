@@ -69,15 +69,10 @@
          * i.e. the scene root.
          *
          * @example
-         * // for root -> a -> b -> c -> ... -> z
-         * var a = SceneManager.find("a");
-         * var z = SceneManager.find("..z");
-         * var f = SceneManager.find("a.b.c.d.e.f");
-         * var f = SceneManager.find("a..f");
-         * var g = SceneManager.find("a..f.g");
-         * var g = SceneManager.find("..f.g", c);
-         * var g = SceneManager.find("..f..g");
-         * var z = SceneManager.find(".f..z", e);
+         * SceneManager.find("a.b..(@visible==true).(@name==z)");
+         * SceneManager.find("a.b..(@visible==true)..(@name==z)");
+         * SceneManager.find("..(@visible==true)..(@name==z)", q);
+         * SceneManager.find("..(@test==true)");
          */
         find: function(query, context) {
             if (!_root) {

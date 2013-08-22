@@ -4,7 +4,7 @@ A `DisplayObject` is the base object for any visual object in the scene. Its mai
 
 ### The Scene Graph
 
-The scene graph is described by parent and child relationships between `DisplayObjects`. A `DisplayObject` represents a single graph node and may have a single parent and many children. In this way, the scene graph can be traversed by walking lists of successive children. The scene graph may also be queried by the find method on `SceneManager`.
+The scene graph is described by parent and child relationships between `DisplayObjects`, beginning with the root `DisplayObject` on `Scene`. A `DisplayObject` represents a single graph node and may have a single parent and many children. In this way, the scene graph can be traversed by walking lists of successive children. The scene graph may also be queried by the find method on `SceneManager`.
 
 ### DisplayObject Derivations
 
