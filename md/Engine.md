@@ -12,7 +12,7 @@ The bo-X engine currently requires initialization with a renderer before it can 
 
 ### Scene
 
-Once an `Engine` has been initialized, `Engine::getScene()` returns the `Scene` object which manages the currently active `DisplayObject` hierarchy. The `Scene` object also contains a property `root' which is the root `DisplayObject`. All `DisplayObject` instances that you wish to be rendered must be part of the connected graph extending from `root`.
+Once an `Engine` has been initialized, `Engine::getScene()` returns the `Scene` object which manages the currently active `DisplayObject` hierarchy. The `Scene` object also contains a property `root` which is the root `DisplayObject`. All `DisplayObject` instances that you wish to be rendered must be part of the connected graph extending from `root`.
 
 In the below example, we add a static image to the scene:
 
