@@ -6,6 +6,51 @@ A `DisplayObject` is the base object for any visual object in the scene. Its mai
 
 The scene graph is described by parent and child relationships between `DisplayObjects`, beginning with the root `DisplayObject` on `Scene`. A `DisplayObject` represents a single graph node and may have a single parent and many children. In this way, the scene graph can be traversed by walking lists of successive children. The scene graph may also be queried by the find method on `SceneManager`.
 
+### Constructor
+
+The`DisplayObject` constructor allows for many of it's properties to be passed in via an object. These properties include:
+
+    * visible       :   Boolean
+	* alpha			:	Number in [0, 1]
+	* tint			:	Color
+	* x				:	Number
+	* y				:	Number
+	* material		:	Material
+	* mainTexture	:	Texture
+	* secTexture	:	Texture
+	* width			:	Number
+	* height		:	Number
+	* name			:	string
+	* anchorX		:	Number
+	* anchorY		:	Number
+
+With this, you can construct and initialize a `DisplayObject` very quickly.
+
+	var background = new Shape({
+		x		: 0,
+		y		: 0,
+		width	: sceneWidth,
+		height	: sceneWidth,
+		name	: "Background",
+		tint	: new Color()
+	});
+
+### Transform
+
+The `Transform` object, as you can read in the generated documentation, provides access to position, rotation, scale, and the anchor point of a DisplayObject. All of these concepts should be self-explanatory except for, perhaps, the anchor point.
+
+`Transform::anchorPoint` is an x, y position in a `DisplayObject`s local space, about which all transforms are applied. That is, positioning of the `DisplayObject` positions the anchor point of the `DisplayObject`, and rotations rotate about this point.
+
+By default, the anchor point is set to the top left corner of a `DisplayObject`. Consider the following code that centers the anchor point. Future rotations will rotate about the center of the `DisplayObject`:
+
+	var square = new Shape({
+		width	: 50,
+		height	: 50,
+		name	: "Square",
+		tint	: new Color(0, 1, 0)
+	});
+	square.transform.anchorPoint.x = square.transform.anchorPoint.y = 25;
+
 ### DisplayObject Derivations
 
 bo-X includes several derivations of `DisplayObject` including:

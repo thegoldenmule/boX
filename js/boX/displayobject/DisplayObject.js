@@ -14,12 +14,13 @@
      *
      * @param {Object} parameters An object for initializing the DisplayObject.
      * This object may contain the following properties: visible, alpha, tint,
-     * x, y, material, mainTexture, secTexture, width, height, and name.
+     * x, y, material, mainTexture, secTexture, width, height, name, anchorX,
+     * and anchorY.
      *
      * @returns {DisplayObject}
      *
      * @example
-     * var sprite = new Sprite({
+     * var sprite = new Shape({
      *      x: 10,
      *      y: 100,
      *      tint: new Color(0, 1, 0)
@@ -105,6 +106,8 @@
         scope.transform = new Transform();
         scope.transform.position.x = undefined === parameters.x ? 0 : parameters.x;
         scope.transform.position.y = undefined === parameters.y ? 0 : parameters.y;
+        scope.transform.anchorPoint.x = undefined === parameters.anchorX ? 0 : parameters.anchorX;
+        scope.transform.anchorPoint.y = undefined === parameters.anchorY ? 0 : parameters.anchorY;
 
         /**
          * @member global.DisplayObject#material

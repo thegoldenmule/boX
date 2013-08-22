@@ -2210,12 +2210,13 @@ var Shader = (function() {
      *
      * @param {Object} parameters An object for initializing the DisplayObject.
      * This object may contain the following properties: visible, alpha, tint,
-     * x, y, material, mainTexture, secTexture, width, height, and name.
+     * x, y, material, mainTexture, secTexture, width, height, name, anchorX,
+     * and anchorY.
      *
      * @returns {DisplayObject}
      *
      * @example
-     * var sprite = new Sprite({
+     * var sprite = new Shape({
      *      x: 10,
      *      y: 100,
      *      tint: new Color(0, 1, 0)
@@ -2301,6 +2302,8 @@ var Shader = (function() {
         scope.transform = new Transform();
         scope.transform.position.x = undefined === parameters.x ? 0 : parameters.x;
         scope.transform.position.y = undefined === parameters.y ? 0 : parameters.y;
+        scope.transform.anchorPoint.x = undefined === parameters.anchorX ? 0 : parameters.anchorX;
+        scope.transform.anchorPoint.y = undefined === parameters.anchorY ? 0 : parameters.anchorY;
 
         /**
          * @member global.DisplayObject#material
@@ -3758,15 +3761,10 @@ ImageLoader.loadResources = function(urls, callback) {
          * i.e. the scene root.
          *
          * @example
-         * // for root -> a -> b -> c -> ... -> z
-         * var a = SceneManager.find("a");
-         * var z = SceneManager.find("..z");
-         * var f = SceneManager.find("a.b.c.d.e.f");
-         * var f = SceneManager.find("a..f");
-         * var g = SceneManager.find("a..f.g");
-         * var g = SceneManager.find("..f.g", c);
-         * var g = SceneManager.find("..f..g");
-         * var z = SceneManager.find(".f..z", e);
+         * SceneManager.find("a.b..(@visible==true).(@name==z)");
+         * SceneManager.find("a.b..(@visible==true)..(@name==z)");
+         * SceneManager.find("..(@visible==true)..(@name==z)", q);
+         * SceneManager.find("..(@test==true)");
          */
         find: function(query, context) {
             if (!_root) {
