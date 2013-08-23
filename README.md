@@ -3,6 +3,7 @@
 bo-X (bo-chi) is a 2D rendering engine built on WebGL.
 
 ### Demos
+
 * [Cloth Sim](http://thegoldenmule.com/labs/boX/demos/index-fabric.html)
 * [SpriteSheet Example](http://thegoldenmule.com/labs/boX/demos/index-wyvern.html)
 * [Performance](http://thegoldenmule.com/labs/boX/demos/index-test.html)
@@ -15,5 +16,9 @@ bo-X (bo-chi) is a 2D rendering engine built on WebGL.
 * [Animation Playback with `SpriteSheet`](https://github.com/thegoldenmule/boX/blob/master/md/SpriteSheet.md)
 
 Generated docs can be found here: http://thegoldenmule.com/labs/boX/docs/
+
+### Contribute!
+
+Want to contribute? [Here's how](https://github.com/thegoldenmule/boX/blob/master/md/Contribute.md).
 
 ### Roadmap
