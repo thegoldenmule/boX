@@ -21,4 +21,8 @@ Generated docs can be found here: http://thegoldenmule.com/labs/boX/docs/
 
 Want to contribute? [Here's how](https://github.com/thegoldenmule/boX/blob/master/md/Contribute.md).
 
+### Bugs?
+
+It's probably user error, but [here's how to submit issues](https://github.com/thegoldenmule/boX/blob/master/md/Bugs.md) if you must know.
+
 ### Roadmap
