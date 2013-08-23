@@ -11,7 +11,6 @@ var main = (function () {
         renderer,
         engine = new Engine(),
         scene = engine.getScene(),
-        spriteSheetScheduler = new SpriteSheetScheduler(),
 
         wyvernParent,
         wyvern,
@@ -48,9 +47,6 @@ var main = (function () {
 
         // update loop
         engine.onPreUpdate.add(onPreUpdate);
-
-        // plug in the scheduler
-        engine.onPreUpdate.add(spriteSheetScheduler.onPreUpdate);
 
         return that;
     };
@@ -139,8 +135,8 @@ var main = (function () {
         });
         wyvernShadow.transform.position.x = -18;
 
-        spriteSheetScheduler.addSpriteSheet(wyvern);
-        spriteSheetScheduler.addSpriteSheet(wyvernShadow);
+        engine.getSpriteSheetScheduler().addSpriteSheet(wyvern);
+        engine.getSpriteSheetScheduler().addSpriteSheet(wyvernShadow);
 
         // add an animation for each direction
         ["W", "NW", "N", "NE", "E", "SE", "S", "SW"].forEach(

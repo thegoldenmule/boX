@@ -277,80 +277,26 @@
     ];
 
 })(this);
-/**
- * Author: thegoldenmule
- * Date: 1/30/13
- * Time: 4:35 PM
- */
-
-/// requestAnimationFrame
-window.requestAnimationFrame = window.requestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.msRequestAnimationFrame;
-
-// logging
-var Log = (function() {
-    function log(msg) {
-        if (console && console.log) {
-            console.log(msg);
-        }
-    }
-
-    function replaceTokens(msg, tokens) {
-        var message = [];
-        var messagePieces = msg.split(/\{\}/);
-        for (var i = 0, len = Math.min(tokens.length, messagePieces.length); i < len; i++) {
-            message.push(messagePieces[i]);
-            message.push(tokens[i]);
-        }
-
-        if (i < messagePieces.length) {
-            message.push(messagePieces.slice(i).join(""));
-        }
-
-        return message.join("");
-    }
-
-    function loggingFunction(level) {
-        return function() {
-            var args =  Array.prototype.slice.call(arguments);
-            if (0 === args.length) {
-                return;
-            } else if (1 === args.length) {
-                log("[" + level + "] : " + args[0]);
-            } else {
-                log("[" + level + "] : " + replaceTokens(args[0], args.slice(1)));
-            }
-        };
-    }
-
-    return {
-        debug : loggingFunction("Debug"),
-        info : loggingFunction("Info"),
-        warn : loggingFunction("Warn"),
-        error : loggingFunction("Error")
-    };
-})();
-
-var Signal = signals.Signal;
-
-/**
- * Engine
- *
- * @type {*}
- */
-var Engine = (function() {
+(function(global) {
     "use strict";
 
-    /// Static Variables
+    var Signal = signals.Signal;
 
-    /// Static Methods
+    /// setup requestAnimationFrame
+    window.requestAnimationFrame = window.requestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.msRequestAnimationFrame;
 
-    return function() {
+    /**
+     * @class Engine
+     * @desc The main entry point into bo-X. This class manages the scene, renderer,
+     * and update tick.
+     * @returns {Engine}
+     * @constructor
+     */
+    global.Engine = function() {
         var that = this;
-
-        var _scene = new Scene();
 
         // Public Vars
         that.paused = false;
@@ -360,22 +306,56 @@ var Engine = (function() {
         /// Private Variables
         var _initialized = false,
             _renderer = null,
+            _scene = new Scene(),
+            _spriteSheetScheduler = new SpriteSheetScheduler(),
             _lastUpdate = 0,
             _totalTime = 0;
 
-        // Public Methods
+        /**
+         * @method global.Engine#getSimulationTime
+         * @desc Returns the time, in seconds, since the start of the
+         * simulation.
+         * @returns {Number} The time, in seconds, since the start of the
+         * simulation.
+         */
         that.getSimulationTime = function() {
             return _totalTime;
         };
 
+        /**
+         * @method global.Engine#getRenderer
+         * @desc Returns the WebGLRenderer instance.
+         * @returns {WebGLRenderer}
+         */
         that.getRenderer = function() {
             return _renderer;
         };
 
+        /**
+         * @method global.Engine#getScene
+         * @desc Returns the Scene being rendered.
+         * @returns {Scene}
+         */
         that.getScene = function() {
             return _scene;
         };
 
+        /**
+         * @method global.Engine#getSpriteSheetScheduler
+         * @desc Returns the SpriteSheetScheduler for updating SpriteSheets.
+         * @returns {SpriteSheetScheduler}
+         */
+        that.getSpriteSheetScheduler = function() {
+            return _spriteSheetScheduler;
+        };
+
+        /**
+         * @method global.Engine#initialize
+         * @desc Initializes this object. This starts the game tick and begins
+         * calling the renderer.
+         * @param {WebGLRenderer} renderer The WebGLRenderer to render the
+         * scene with.
+         */
         that.initialize = function(renderer) {
             if (true === _initialized) {
                 throw new Error("Cannot initialize Engine twice!");
@@ -409,6 +389,7 @@ var Engine = (function() {
 
             _renderer.preUpdate();
             that.onPreUpdate.dispatch(dt);
+            _spriteSheetScheduler.onPreUpdate(dt);
 
             _scene.update(dt, _renderer);
 
@@ -417,11 +398,11 @@ var Engine = (function() {
 
         return that;
     };
-})();
 
-Engine.prototype = {
-    constructor : Engine
-};
+    global.Engine.prototype = {
+        constructor: global.Engine
+    };
+})(this);
 /**
  * Author: thegoldenmule
  * Date: 8/10/13
@@ -450,6 +431,108 @@ Engine.prototype = {
 
 })(this);
 
+(function(global) {
+    "use strict";
+
+    /**
+     * @desc Logs a message to the console.
+     * @private
+     * @param msg
+     */
+    function log(msg) {
+        if (console && console.log) {
+            console.log(msg);
+        }
+    }
+
+    /**
+     * @desc Replaces tokens in a string with string passed on tokens object.
+     * @example
+     * replaceTokens("I am {name}.", {name:"Bob"});
+     * @param {String} msg
+     * @param {Object} tokens
+     * @returns {string}
+     */
+    function replaceTokens(msg, tokens) {
+        var message = [];
+        var messagePieces = msg.split(/\{\}/);
+        for (var i = 0, len = Math.min(tokens.length, messagePieces.length); i < len; i++) {
+            message.push(messagePieces[i]);
+            message.push(tokens[i]);
+        }
+
+        if (i < messagePieces.length) {
+            message.push(messagePieces.slice(i).join(""));
+        }
+
+        return message.join("");
+    }
+
+    /**
+     * @desc Wraps log with a specific log level.
+     * @private
+     * @param {String} level
+     * @returns {Function}
+     */
+    function loggingFunction(level) {
+        return function() {
+            var args =  Array.prototype.slice.call(arguments);
+            if (0 === args.length) {
+                return;
+            } else if (1 === args.length) {
+                log("[" + level + "] : " + args[0]);
+            } else {
+                log("[" + level + "] : " + replaceTokens(args[0], args.slice(1)));
+            }
+        };
+    }
+
+    /**
+     * @class Log
+     * @desc Defines log methods of varying levels.
+     */
+    global.Log = {
+        /**
+         * @method Log#debug
+         * @desc Logs a message, prefixed by [Debug].
+         * @static
+         * @param {String} msg The message string to log.
+         * @param {Object} tokens Tokens for string replacement.
+         * @return {String}
+         */
+        debug : loggingFunction("Debug"),
+
+        /**
+         * @method Log#info
+         * @desc Logs a message, prefixed by [Info].
+         * @static
+         * @param {String} msg The message string to log.
+         * @param {Object} tokens Tokens for string replacement.
+         * @return {String}
+         */
+        info : loggingFunction("Info"),
+
+        /**
+         * @method Log#warn
+         * @desc Logs a message, prefixed by [Warn].
+         * @static
+         * @param {String} msg The message string to log.
+         * @param {Object} tokens Tokens for string replacement.
+         * @return {String}
+         */
+        warn : loggingFunction("Warn"),
+
+        /**
+         * @method Log#error
+         * @desc Logs a message, prefixed by [Error].
+         * @static
+         * @param {String} msg The message string to log.
+         * @param {Object} tokens Tokens for string replacement.
+         * @return {String}
+         */
+        error : loggingFunction("Error")
+    };
+})(this);
 /**
  * Author: thegoldenmule
  * Date: 3/11/13
