@@ -14,7 +14,7 @@ Here are a few concrete suggestions for contributions once you've given bo-X a s
 
 * __Submit bugs__. Use [GitHub's fancy issue tracker](https://github.com/thegoldenmule/box/issues) and try to follow the [guidelines for submitting bugs](https://github.com/thegoldenmule/boX/blob/master/md/Bugs.md).
 
-* __Pull requests__. That's why it's on GitHub, my friends: because we love pull requests. The includes everything from one line bug fixes to brand-spankin new features. If you have sweeping architectural changes, well let's talk about it before you get to deep.
+* __Pull requests__. That's why it's on GitHub, my friends: because we love pull requests. The includes everything from one line bug fixes to brand-spankin new features. If you have sweeping architectural changes, well let's talk about it before you get too deep.
 
 * __Unit tests__. If you spot a fragile bit of code, consider writing up a unit test. Tests are located in the tests folder, and leverage the [QUnit](http://qunitjs.com/) library.
 

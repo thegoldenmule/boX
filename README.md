@@ -26,3 +26,5 @@ Want to contribute? [Here's how](https://github.com/thegoldenmule/boX/blob/maste
 It's probably user error, but [here's how to submit issues](https://github.com/thegoldenmule/boX/blob/master/md/Bugs.md) if you must know.
 
 ### Roadmap
+
+Want to know where bo-X is headed? Take a look at our [roadmap](https://github.com/thegoldenmule/boX/blob/master/md/Roadmap.md).
