@@ -1,8 +1,3 @@
-/**
- * Author: thegoldenmule
- * Date: 5/27/13
- */
-
 (function (global) {
     "use strict";
 
@@ -12,6 +7,7 @@
      *
      * @param material The material to use.
      * @returns {*}
+     * @author thegoldenmule
      * @constructor
      */
     var Particle = function (material) {

@@ -1,13 +1,7 @@
-/**
- * Author: thegoldenmule
- * Date: 3/10/13
- */
-
 (function (global) {
     "use strict";
 
-    var __tempModelMatrix = mat4.create(),
-        __tempColor = new Float32Array([1, 1, 1, 1]);
+    var __tempColor = new Float32Array([1, 1, 1, 1]);
 
     var WebGLRenderer = function(canvas) {
         var scope = this;

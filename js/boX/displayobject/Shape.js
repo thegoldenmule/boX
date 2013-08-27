@@ -11,6 +11,7 @@
      * @param {Object} parameters Any initialization parameters as described by
      * the DisplayObject documentation.
      * @returns {Shape}
+     * @author thegoldenmule
      * @constructor
      */
     global.Shape = function (parameters) {

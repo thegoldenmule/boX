@@ -1,7 +1,7 @@
 # Roadmap
 
 ### 0.6.1
-* Dynamic batching support. This was a part of 0.5.x, and was removed for implementation improvements.
+* Masks
 * Add pause + resume functionality.
 * Scalar multiplier for simulation time.
 
@@ -15,6 +15,9 @@
 * Click detection.
 * Better lost context handling.
 * `SpriteSheet` v.2. This includes a better interface for animations and rotations, multiple textures, etc.
+
+### 0.6.4
+* Dynamic batching support. This was a part of 0.5.x, and was removed for implementation improvements.
 
 ### 0.7
 * TexturePacker support for `SpriteSheet` and `StaticImage`.

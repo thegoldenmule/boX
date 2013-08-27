@@ -14,6 +14,7 @@
      * @desc The main entry point into bo-X. This class manages the scene, renderer,
      * and update tick.
      * @returns {Engine}
+     * @author thegoldenmule
      * @constructor
      */
     global.Engine = function() {

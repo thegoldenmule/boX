@@ -1,31 +1,67 @@
-/**
- * Author: thegoldenmule
- * Date: 5/18/13
- * Time: 7:13 AM
- */
-
 (function (global) {
     "use strict";
 
-    var Animation = function(parameters) {
-        var that = this;
+    /**
+     * @class Animation
+     * @desc Defines an animation for a SpriteSheet.
+     * @param {Object} parameters An object initializer that may contain the
+     * following parameters: name, startFrame, animationLength, frameRate.
+     * @returns {Animation}
+     * @author thegoldenmule
+     * @constructor
+     */
+    global.Animation = function(parameters) {
+        var scope = this;
 
         if (!parameters) {
             parameters = {};
         }
 
-        this.name = undefined === parameters.name ? "" : parameters.name;
+        /**
+         * @member global.Animation#name
+         * @desc The name of the Animation. This is used to key animations.
+         * @type {string}
+         */
+        scope.name = undefined === parameters.name ? "" : parameters.name;
 
-        this.startFrame = undefined === parameters.startFrame ? 0 : parameters.startFrame;
-        this.animationLength = undefined === parameters.animationLength ? 0 : parameters.animationLength;
+        /**
+         * @member global.Animation#startFrame
+         * @desc Defines the frame on which to start the animation.
+         * @type {number}
+         */
+        scope.startFrame = undefined === parameters.startFrame ? 0 : parameters.startFrame;
 
-        this.frameRate = undefined === parameters.frameRate ? 60 : parameters.frameRate;
+        /**
+         * @member global.Animation#animationLength
+         * @desc Defines how many frames are in the animation.
+         * @type {number}
+         */
+        scope.animationLength = undefined === parameters.animationLength ? 0 : parameters.animationLength;
 
-        return that;
+        /**
+         * @member global.Animation#frameRate
+         * @desc Defines the speed at which to playback the animation.
+         * @type {number}
+         */
+        scope.frameRate = undefined === parameters.frameRate ? 60 : parameters.frameRate;
+
+        return scope;
     };
 
-    var SpriteSheet = function (parameters) {
-        var that = this;
+    /**
+     * @class SpriteSheet
+     * @desc A SpriteSheet is a DisplayObject that plays back animations.
+     * @param {Object} parameters An object initializer that may must contain:
+     * width
+     * height
+     * mainTexture
+     *
+     * But may also contain any values appropriate for a DisplayObject.
+     * @returns {SpriteSheet}
+     * @constructor
+     */
+    global.SpriteSheet = function (parameters) {
+        var scope = this;
 
         if (undefined === parameters) {
             parameters = {};
@@ -43,9 +79,9 @@
             throw new Error("Must define mainTexture!");
         }
 
-        DisplayObject.call(that, parameters);
+        DisplayObject.call(scope, parameters);
 
-        that.material.shader.setShaderProgramIds("ss-shader-vs", "ss-shader-fs");
+        scope.material.shader.setShaderProgramIds("ss-shader-vs", "ss-shader-fs");
 
         var _animations = [],
 
@@ -53,8 +89,8 @@
             _currentTimeMS = 0,
             _currentFrame = 0,
 
-            _totalFrameWidth = that.material.mainTexture.getWidth() / that.getWidth(),
-            _totalFrameHeight = that.material.mainTexture.getHeight() / that.getWidth(),
+            _totalFrameWidth = scope.material.mainTexture.getWidth() / scope.getWidth(),
+            _totalFrameHeight = scope.material.mainTexture.getHeight() / scope.getWidth(),
 
             _normalizedFrameWidth = 1 / _totalFrameWidth,
             _normalizedFrameHeight = 1 / _totalFrameHeight,
@@ -63,15 +99,31 @@
 
         _blendCurve.easingFunction = Easing.Quadratic.In;
 
-        that.getBlendCurve = function() {
+        /**
+         * @function global.SpriteSheet#getBlendCurve
+         * @desc Returns the AnimationCurve instance used for blending between
+         * frames.
+         * @returns {AnimationCurve}
+         */
+        scope.getBlendCurve = function() {
             return _blendCurve;
         };
 
-        that.addAnimation = function(animationData) {
+        /**
+         * @function global.SpriteSheet#addAnimation
+         * @desc Adds an Animation object to this SpriteSheet.
+         * @param {Animation} animationData The Animation instane to add.
+         */
+        scope.addAnimation = function(animationData) {
             _animations.push(animationData);
         };
 
-        that.removeAnimationByName = function(animationName) {
+        /**
+         * @function global.SpriteSheet#removeAnimationByName
+         * @desc Removes an Animation instance by name.
+         * @param {String} animationName The name of the Animation to remove.
+         */
+        scope.removeAnimationByName = function(animationName) {
             for (var i = 0, len = _animations.length; i < len; i++) {
                 if (_animations[i].name === animationName) {
                     _animations = _animations.splice(i, 0);
@@ -80,7 +132,12 @@
             }
         };
 
-        that.setCurrentAnimationByName = function(animationName) {
+        /**
+         * @function global.SpriteSheet#setCurrentAnimationByName
+         * @desc Sets the current Animation to play back by name.
+         * @param {String} animationName The name of the Animation to play.
+         */
+        scope.setCurrentAnimationByName = function(animationName) {
             if (null !== _currentAnimation && _currentAnimation.name === animationName) {
                 return;
             }
@@ -94,11 +151,21 @@
             }
         };
 
-        that.getCurrentAnimation = function() {
+        /**
+         * @function global.SpriteSheet#getCurrentAnimation
+         * @desc Retrieves the currently playing Animation.
+         * @returns {Animation}
+         */
+        scope.getCurrentAnimation = function() {
             return _currentAnimation;
         };
 
-        that.setCurrentFrame = function(value) {
+        /**
+         * @function global.SpriteSheet#setCurrentFrame
+         * @desc Sets the current frame.
+         * @param {Number} value The frame number to play.
+         */
+        scope.setCurrentFrame = function(value) {
             // get the animation
             var animation = _currentAnimation;
             if (null === animation) {
@@ -119,11 +186,22 @@
             updateUVs();
         };
 
-        that.getCurrentFrame = function() {
+        /**
+         * @function global.SpriteSheet#getCurrentFrame
+         * @desc Returns the number of the frame currently playing.
+         * @returns {number}
+         */
+        scope.getCurrentFrame = function() {
             return _currentFrame;
         };
 
-        that.setCurrentTime = function(value) {
+        /**
+         * @function global.SpriteSheet#setCurrentTime
+         * @desc Rather than setting the frame number, the time may also be
+         * set, in which case, the frame number is derived.
+         * @param value
+         */
+        scope.setCurrentTime = function(value) {
             // get the animation
             var animation = _currentAnimation;
             if (null === animation) {
@@ -137,7 +215,7 @@
             var newFrame = Math.floor(_currentTimeMS / msPerFrame) % animation.animationLength;
 
             // set the blend uniform
-            that.material.shader.setUniformFloat(
+            scope.material.shader.setUniformFloat(
                 "uFutureBlendScalar",
                 _blendCurve.evaluate((_currentTimeMS % msPerFrame) / msPerFrame));
 
@@ -151,10 +229,22 @@
             updateUVs();
         };
 
-        that.update = function(dt) {
-            that.setCurrentTime(_currentTimeMS + dt);
+        /**
+         * @function global.SpriteSheet#update
+         * @desc Updates the SpriteSheet. This method motors the animation.
+         * @param {Number} dt The time, in seconds, since the last update was
+         * called.
+         */
+        scope.update = function(dt) {
+            scope.setCurrentTime(_currentTimeMS + dt);
         };
 
+        /**
+         * @function global.SpriteSheet#updateUVs
+         * @private
+         * @desc Updates the uv buffer. Since SpriteSheets actually upload two
+         * frames at a time, the color buffer also holds uv information.
+         */
         function updateUVs() {
             // get the animation
             var animation = _currentAnimation;
@@ -173,7 +263,7 @@
             var normalizedFrameY = frameY / _totalFrameHeight;
 
             // set the uvs
-            var uvs = that.geometry.uvs;
+            var uvs = scope.geometry.uvs;
             uvs[0] = normalizedFrameX;
             uvs[1] = normalizedFrameY;
 
@@ -199,7 +289,7 @@
             normalizedFrameY = frameY / _totalFrameHeight;
 
             // set the uvs
-            var colors = that.geometry.colors;
+            var colors = scope.geometry.colors;
             colors[0] = normalizedFrameX;
             colors[1] = normalizedFrameY;
 
@@ -212,15 +302,12 @@
             colors[12] = normalizedFrameX + _normalizedFrameWidth;
             colors[13] = normalizedFrameY + _normalizedFrameHeight;
 
-            that.geometry.apply();
+            scope.geometry.apply();
         }
 
-        return that;
+        return scope;
     };
 
-    SpriteSheet.prototype = new DisplayObject();
-    SpriteSheet.prototype.constructor = SpriteSheet;
-
-    global.Animation = Animation;
-    global.SpriteSheet = SpriteSheet;
+    global.SpriteSheet.prototype = new DisplayObject();
+    global.SpriteSheet.prototype.constructor = SpriteSheet;
 })(this);

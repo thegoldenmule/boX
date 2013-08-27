@@ -25,62 +25,89 @@
     
     <section>
         <article>
-            <pre class="prettyprint source"><code>/**
- * User: ti83
- * Date: 3/10/13
- */
-
-var Signal = signals.Signal;
-
-var ImageLoader = (function () {
+            <pre class="prettyprint source"><code>(function (global) {
     "use strict";
 
-    return function () {
-        var that = this;
+    var Signal = signals.Signal;
 
-        that.image = null;
-        that.onLoaded = new Signal();
+    /**
+     * @class ImageLoader
+     * @author thegoldenmule
+     * @desc This object provides an interface for loading textures into Image
+     * elements.
+     * @returns {ImageLoader}
+     * @constructor
+     */
+    global.ImageLoader = function () {
+        var scope = this;
 
-        return that;
+        /**
+         * @member global.ImageLoader#image
+         * @desc The Image element that is being loaded.
+         * @type {Image}
+         */
+        scope.image = null;
+
+        /**
+         * @member global.ImageLoader#onLoaded
+         * @desc This signal is dispatched when the Image has been loaded.
+         * @type {Signal}
+         */
+        scope.onLoaded = new Signal();
+
+        return scope;
     };
-})();
 
-ImageLoader.prototype = {
-    constructor: ImageLoader,
-    load: function(url, imageElement) {
-        var that = this;
+    global.ImageLoader.prototype = {
+        constructor: global.ImageLoader,
 
-        // TODO: consider pooling
-        if (undefined === imageElement) {
-            imageElement = new Image();
+        /**
+         * @function global.ImageLoader#load
+         * @desc Loads a url into an Image element.
+         * @param {String} url The URL to load.
+         * @param {Image} imageElement An optional Image instance to load through.
+         */
+        load: function(url, imageElement) {
+            var that = this;
+
+            // TODO: consider pooling
+            if (undefined === imageElement) {
+                imageElement = new Image();
+            }
+
+            imageElement.onload = function() {
+                that.image = imageElement;
+                that.onLoaded.dispatch();
+            };
+            imageElement.crossOrigin = "localhost";
+            imageElement.src = url;
+        }
+    };
+
+    /**
+     * @function global.ImageLoader#loadResources
+     * @static
+     * @desc Loads a list of URLs and calls the associated callback.
+     * @param {String} urls The List of URLs to load.
+     * @param {Function} callback A Function to call once the images have been
+     * loaded.
+     */
+    global.ImageLoader.loadResources = function(urls, callback) {
+        var loaded = 0;
+        function onLoaded(loader) {
+            if (++loaded === urls.length) {
+                callback(loaders);
+            }
         }
 
-        imageElement.onload = function() {
-            that.image = imageElement;
-            that.onLoaded.dispatch();
-        };
-        imageElement.crossOrigin = "localhost";
-        imageElement.src = url;
-    }
-};
-
-ImageLoader.loadResources = function(urls, callback) {
-    "use strict";
-
-    var loaded = 0;
-    function onLoaded(loader) {
-        if (++loaded === urls.length) {
-            callback(loaders);
-        }
-    }
-
-    var loaders = urls.map(function(url) {
-        var loader = new ImageLoader();
-        loader.onLoaded.add(onLoaded);
-        loader.load(url);
-        return loader;
-    });
-};</code></pre>
+        var loaders = urls.map(function(url) {
+            var loader = new ImageLoader();
+            loader.onLoaded.add(onLoaded);
+            loader.load(url);
+            return loader;
+        });
+    };
+})(this);</code></pre>
         </article>
     </section>
 
@@ -90,13 +117,13 @@ ImageLoader.loadResources = function(urls, callback) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Easing.html">Easing</a></li><li><a href="global.AnimationCurve.html">AnimationCurve</a></li><li><a href="global.AnimationCurveKey.html">AnimationCurveKey</a></li><li><a href="global.Color.html">Color</a></li><li><a href="global.DisplayObject.html">DisplayObject</a></li><li><a href="global.Engine.html">Engine</a></li><li><a href="global.Material.html">Material</a></li><li><a href="global.ObjectPool.html">ObjectPool</a></li><li><a href="global.particle.AlphaAnimator.html">AlphaAnimator</a></li><li><a href="global.particle.ParticlePropertyAnimator.html">ParticlePropertyAnimator</a></li><li><a href="global.particle.Rotation.html">Rotation</a></li><li><a href="global.particle.ScaleAnimator.html">ScaleAnimator</a></li><li><a href="global.Rectangle.html">Rectangle</a></li><li><a href="global.SceneManager.html">SceneManager</a></li><li><a href="global.SceneQuery.html">SceneQuery</a></li><li><a href="global.Set.html">Set</a></li><li><a href="global.Shader.html">Shader</a></li><li><a href="global.Shape.html">Shape</a></li><li><a href="global.SpriteSheetScheduler.html">SpriteSheetScheduler</a></li><li><a href="global.StaticImage.html">StaticImage</a></li><li><a href="Log.html">Log</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Signal">Signal</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Easing.html">Easing</a></li><li><a href="global.Animation.html">Animation</a></li><li><a href="global.AnimationCurve.html">AnimationCurve</a></li><li><a href="global.AnimationCurveKey.html">AnimationCurveKey</a></li><li><a href="global.Color.html">Color</a></li><li><a href="global.DisplayObject.html">DisplayObject</a></li><li><a href="global.Engine.html">Engine</a></li><li><a href="global.ImageLoader.html">ImageLoader</a></li><li><a href="global.Material.html">Material</a></li><li><a href="global.ObjectPool.html">ObjectPool</a></li><li><a href="global.particle.AlphaAnimator.html">AlphaAnimator</a></li><li><a href="global.particle.ParticlePropertyAnimator.html">ParticlePropertyAnimator</a></li><li><a href="global.particle.Rotation.html">Rotation</a></li><li><a href="global.particle.ScaleAnimator.html">ScaleAnimator</a></li><li><a href="global.Quad.html">Quad</a></li><li><a href="global.Rectangle.html">Rectangle</a></li><li><a href="global.SceneManager.html">SceneManager</a></li><li><a href="global.SceneQuery.html">SceneQuery</a></li><li><a href="global.Set.html">Set</a></li><li><a href="global.Shader.html">Shader</a></li><li><a href="global.Shape.html">Shape</a></li><li><a href="global.SpriteSheet.html">SpriteSheet</a></li><li><a href="global.SpriteSheetScheduler.html">SpriteSheetScheduler</a></li><li><a href="global.StaticImage.html">StaticImage</a></li><li><a href="global.Texture.html">Texture</a></li><li><a href="Log.html">Log</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Mon Aug 26 2013 20:26:06 GMT-0700 (PDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Aug 27 2013 08:53:38 GMT-0700 (PDT)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -1,18 +1,3 @@
-/**
- * Default particle plugins:
- *
- * Position
- * Velocity
- * Acceleration
- * Lifetime
- * Attractor
- * ParticlePropertyAnimator
- * ScaleAnimator
- * AlphaAnimator
- * RotationAnimator
- *
- * @author thegoldenmule
- */
 (function(global) {
     "use strict";
 

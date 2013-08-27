@@ -57,6 +57,7 @@
     /**
      * @class Log
      * @desc Defines log methods of varying levels.
+     * @author thegoldenmule
      */
     global.Log = {
         /**

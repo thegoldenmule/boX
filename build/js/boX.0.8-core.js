@@ -8,6 +8,7 @@
      * @param {Number} g A normalized value for green.
      * @param {Number} b A normalized value for blue.
      * @returns {Color}
+     * @author thegoldenmule
      * @constructor
      */
     global.Color = function(r, g, b) {
@@ -293,6 +294,7 @@
      * @desc The main entry point into bo-X. This class manages the scene, renderer,
      * and update tick.
      * @returns {Engine}
+     * @author thegoldenmule
      * @constructor
      */
     global.Engine = function() {
@@ -515,6 +517,7 @@
     /**
      * @class Log
      * @desc Defines log methods of varying levels.
+     * @author thegoldenmule
      */
     global.Log = {
         /**
@@ -558,11 +561,6 @@
         error : loggingFunction("Error")
     };
 })(this);
-/**
- * Author: thegoldenmule
- * Date: 3/11/13
- */
-
 (function (global) {
     "use strict";
 
@@ -573,6 +571,7 @@
      * @desc Material's hold a Shader and texture information. Materials may be
      * shared between multiple DisplayObjects.
      * @returns {Material}
+     * @author thegoldenmule
      * @constructor
      */
     global.Material = function () {
@@ -651,49 +650,103 @@
         }
     };
 })(this);
-/**
- * User: ti83
- * Date: 3/9/13
- */
 (function(global) {
     "use strict";
 
-    var Quad = function () {
-        var that = this;
+    /**
+     * @class Quad
+     * @desc The Quad class represents a simple quad geometry. It includes a
+     * vertex, uv, and vertex color buffer. Quads are drawn using the triangle
+     * strip primitive.
+     * @returns {Quad}
+     * @author thegoldenmule
+     * @constructor
+     */
+    global.Quad = function () {
+        var scope = this;
 
-        that.width = 1;
-        that.height = 1;
+        /**
+         * @member global.Quad#width
+         * @desc The width of the Quad.
+         * @type {number}
+         */
+        scope.width = 1;
 
-        that.vertices = new Float32Array([
+        /**
+         * @member global.Quad#height
+         * @desc The height of the Quad.
+         * @type {number}
+         */
+        scope.height = 1;
+
+        /**
+         * @member global.Quad#vertices
+         * @desc An array of x, y coordinates that represent the
+         * Quad's vertices.
+         * @type {Float32Array}
+         */
+        scope.vertices = new Float32Array([
             0, 0,
             0, 1,
             1, 0,
             1, 1]);
 
-        that.uvs = new Float32Array([
+        /**
+         * @member global.Quad#uvs
+         * @desc An array of u, v texture coordinates.
+         * @type {Float32Array}
+         */
+        scope.uvs = new Float32Array([
             0, 0,
             0, 1,
             1, 0,
             1, 1]);
 
-        that.colors = new Float32Array([
+        /**
+         * @member global.Quad#colors
+         * @desc An array of rgba values that represent vertex colors.
+         * @type {Float32Array}
+         */
+        scope.colors = new Float32Array([
             1, 1, 1, 1,
             1, 1, 1, 1,
             1, 1, 1, 1,
             1, 1, 1, 1]);
 
-        that.vertexBuffer = null;
-        that.uvBuffer = null;
-        that.colorBuffer = null;
+        /**
+         * @member global.Quad#vertexBuffer
+         * @desc The vertex buffer to push to the GPU.
+         * @type {WebGLBuffer}
+         */
+        scope.vertexBuffer = null;
 
-        that.__apply = true;
+        /**
+         * @member global.Quad#uvBuffer
+         * @desc The uv buffer to push to the GPU.
+         * @type {WebGLBuffer}
+         */
+        scope.uvBuffer = null;
 
-        return that;
+        /**
+         * @member global.Quad#colorBuffer
+         * @desc The vertex color buffer to push to the GPU.
+         * @type {WebGLBuffer}
+         */
+        scope.colorBuffer = null;
+
+        scope.__apply = true;
+
+        return scope;
     };
 
-    Quad.prototype = {
-        constructor: Quad,
+    global.Quad.prototype = {
+        constructor: global.Quad,
 
+        /**
+         * @function global.Quad#apply
+         * @desc Applies width and height changes to the Quad's geometry. This
+         * must be called after width or height has been changed.
+         */
         apply: function() {
             // update from width/height
             this.vertices[4] = this.vertices[6] = this.width;
@@ -702,10 +755,19 @@
             this.__apply = true;
         },
 
+        /**
+         * @function global.Quad#clearBuffers
+         * @desc Called when the WebGLContext has been lost.
+         */
         clearBuffers: function() {
             this.vertexBuffer = this.uvBuffer = this.colorBuffer = null;
         },
 
+        /**
+         * @function global.Quad#prepareBuffers
+         * @desc Creates buffers and binds data only when necessary.
+         * @param {WebGLContext} ctx The context to prepare for.
+         */
         prepareBuffers: function(ctx) {
             if (null === this.vertexBuffer) {
                 this.vertexBuffer = ctx.createBuffer();
@@ -733,6 +795,11 @@
             this.__apply = false;
         },
 
+        /**
+         * @function global.Quad#pushBuffers
+         * @param {WebGLContext} ctx The context to push the buffers to.
+         * @param {Shader} shader The shader to grab pointers from.
+         */
         pushBuffers: function(ctx, shader) {
             if (-1 < shader.vertexBufferAttributePointer) {
                 ctx.bindBuffer(ctx.ARRAY_BUFFER, this.vertexBuffer);
@@ -750,6 +817,11 @@
             }
         },
 
+        /**
+         * @function global.Quad#draw
+         * @desc Makes the actual draw call.
+         * @param {WebGLContext} ctx The context to draw on.
+         */
         draw: function(ctx) {
             ctx.drawArrays(
                 ctx.TRIANGLE_STRIP,
@@ -757,9 +829,6 @@
                 4);
         }
     };
-
-    // export
-    global.Quad = Quad;
 })(this);
 (function(global) {
     "use strict";
@@ -772,6 +841,7 @@
      * @param {Number} w The width of the rectangle.
      * @param {Number} h The height of the rectangle.
      * @returns {Rectangle}
+     * @author thegoldenmule
      * @constructor
      */
     global.Rectangle = function(x, y, w, h) {
@@ -917,6 +987,7 @@
      * definitions may be compiled.
      *
      * @returns {Shader}
+     * @author thegoldenmule
      * @constructor
      */
     global.Shader = function() {
@@ -1357,6 +1428,7 @@
      * @class SpriteSheetScheduler
      * @desc This object manages SpriteSheet updates.
      * @returns {SpriteSheetScheduler}
+     * @author thegoldenmule
      * @constructor
      */
     global.SpriteSheetScheduler = function () {
@@ -1403,43 +1475,111 @@
         constructor: global.SpriteSheetScheduler
     };
 })(this);
-/**
- * Author: thegoldenmule
- * Date: 3/10/13
- */
-
 (function (global) {
     "use strict";
 
-    var Texture = function (image) {
+    /**
+     * @class Texture
+     * @author thegoldenmule
+     * @desc A Texture represents pixel data for shaders and provides management
+     * for intelligently uploading images.
+     * @param {Image} image An optional Image element. Images may also be
+     * swapped at runtime, but the apply function must be called.
+     * @returns {Texture}
+     * @constructor
+     */
+    global.Texture = function (image) {
         var scope = this;
 
+        /**
+         * @member global.Texture#image
+         * @desc The HTML Image object to act as the source.
+         * @type {Image}
+         */
         scope.image = undefined === image ? null : image;
+
+        /**
+         * @member global.Texture#glTexture
+         * @desc The glTexture object. This is created and managed internally.
+         * @type {WebGLTexture}
+         */
         scope.glTexture = null;
+
+        /**
+         * @member global.Texture#flipY
+         * @desc If true, flips the texture vertically.
+         * @type {boolean}
+         */
         scope.flipY = false;
+
+        /**
+         * @member global.Texture#filterLinear
+         * @desc If true, uploads with linear filtering, otherwise with nearest.
+         * @type {boolean}
+         */
         scope.filterLinear = true;
+
+        /**
+         * @member global.Texture#mipmapLinear
+         * @desc If true, mipmaps use linear filtering, otherwise, nearest.
+         * @type {boolean}
+         */
         scope.mipmapLinear = true;
+
+        scope._apply = true;
 
         return scope;
     };
 
-    Texture.prototype = {
-        constructor:Texture,
+    global.Texture.prototype = {
+        constructor:global.Texture,
 
+        /**
+         * @function global.Texture#getWidth
+         * @desc Returns the width of the Texture.
+         * @returns {Number}
+         */
         getWidth: function() {
             return this.image ? parseInt(this.image.width, 10) : 0;
         },
 
+        /**
+         * @function global.Texture#getHeight
+         * @desc Returns the height of the Texture.
+         * @returns {Number}
+         */
         getHeight: function() {
             return this.image ? parseInt(this.image.height, 10) : 0;
         },
 
+        /**
+         * @function global.Texture#apply
+         * @desc Must be called after the source image has been updated.
+         */
+        apply: function() {
+            this._apply = true;
+        },
+
+        /**
+         * @function global.Texture#clearBuffers
+         * @desc Called when the WebGLContext has been lost.
+         */
+        clearBuffers: function() {
+            this.glTexture = null;
+        },
+
+        /**
+         * @function global.Texture#prepareTexture
+         * @desc Called to prepare Textures for a context. This method will not
+         * bind textures or create buffers if unnecessary.
+         * @param {WebGLContext} ctx The context to prepare for.
+         */
         prepareTexture: function(ctx) {
             if (null === this.image) {
                 return;
             }
 
-            if (null === this.glTexture) {
+            if (null === this.glTexture || this._apply) {
                 this.glTexture = ctx.createTexture();
 
                 ctx.bindTexture(ctx.TEXTURE_2D, this.glTexture);
@@ -1449,9 +1589,18 @@
                 ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MAG_FILTER, this.filterLinear ? ctx.LINEAR : ctx.NEAREST);
                 ctx.texParameteri(ctx.TEXTURE_2D, ctx.TEXTURE_MIN_FILTER, this.filterLinear ? ctx.LINEAR : ctx.NEAREST);
                 ctx.bindTexture(ctx.TEXTURE_2D, null);
+
+                this._apply = false;
             }
         },
 
+        /**
+         * @function global.Texture#pushTexture
+         * @desc Pushes the texture buffer to the GPU.
+         * @param {WebGLContext} ctx The context to push to.
+         * @param {Shader} shader The Shader to grab pointers from.
+         * @param {Number} textureNum Each texture is associated with a number.
+         */
         pushTexture: function(ctx, shader, textureNum) {
             if (-1 === shader.mainTextureUniformPointer) {
                 return;
@@ -1462,15 +1611,7 @@
             ctx.uniform1i(shader.mainTextureUniformPointer, 0);
         }
     };
-
-    // export
-    global.Texture = Texture;
 })(this);
-/**
- * Author: thegoldenmule
- * Date: 3/10/13
- */
-
 (function (global) {
     "use strict";
 
@@ -1553,16 +1694,10 @@
     // export
     global.Transform = Transform;
 })(this);
-/**
- * Author: thegoldenmule
- * Date: 3/10/13
- */
-
 (function (global) {
     "use strict";
 
-    var __tempModelMatrix = mat4.create(),
-        __tempColor = new Float32Array([1, 1, 1, 1]);
+    var __tempColor = new Float32Array([1, 1, 1, 1]);
 
     var WebGLRenderer = function(canvas) {
         var scope = this;
@@ -2987,6 +3122,7 @@
      * @param {Object} parameters Any initialization parameters as described by
      * the DisplayObject documentation.
      * @returns {Shape}
+     * @author thegoldenmule
      * @constructor
      */
     global.Shape = function (parameters) {
@@ -3003,34 +3139,70 @@
     global.Shape.prototype = new DisplayObject();
     global.Shape.prototype.constructor = Shape;
 })(this);
-/**
- * Author: thegoldenmule
- * Date: 5/18/13
- * Time: 7:13 AM
- */
-
 (function (global) {
     "use strict";
 
-    var Animation = function(parameters) {
-        var that = this;
+    /**
+     * @class Animation
+     * @desc Defines an animation for a SpriteSheet.
+     * @param {Object} parameters An object initializer that may contain the
+     * following parameters: name, startFrame, animationLength, frameRate.
+     * @returns {Animation}
+     * @author thegoldenmule
+     * @constructor
+     */
+    global.Animation = function(parameters) {
+        var scope = this;
 
         if (!parameters) {
             parameters = {};
         }
 
-        this.name = undefined === parameters.name ? "" : parameters.name;
+        /**
+         * @member global.Animation#name
+         * @desc The name of the Animation. This is used to key animations.
+         * @type {string}
+         */
+        scope.name = undefined === parameters.name ? "" : parameters.name;
 
-        this.startFrame = undefined === parameters.startFrame ? 0 : parameters.startFrame;
-        this.animationLength = undefined === parameters.animationLength ? 0 : parameters.animationLength;
+        /**
+         * @member global.Animation#startFrame
+         * @desc Defines the frame on which to start the animation.
+         * @type {number}
+         */
+        scope.startFrame = undefined === parameters.startFrame ? 0 : parameters.startFrame;
 
-        this.frameRate = undefined === parameters.frameRate ? 60 : parameters.frameRate;
+        /**
+         * @member global.Animation#animationLength
+         * @desc Defines how many frames are in the animation.
+         * @type {number}
+         */
+        scope.animationLength = undefined === parameters.animationLength ? 0 : parameters.animationLength;
 
-        return that;
+        /**
+         * @member global.Animation#frameRate
+         * @desc Defines the speed at which to playback the animation.
+         * @type {number}
+         */
+        scope.frameRate = undefined === parameters.frameRate ? 60 : parameters.frameRate;
+
+        return scope;
     };
 
-    var SpriteSheet = function (parameters) {
-        var that = this;
+    /**
+     * @class SpriteSheet
+     * @desc A SpriteSheet is a DisplayObject that plays back animations.
+     * @param {Object} parameters An object initializer that may must contain:
+     * width
+     * height
+     * mainTexture
+     *
+     * But may also contain any values appropriate for a DisplayObject.
+     * @returns {SpriteSheet}
+     * @constructor
+     */
+    global.SpriteSheet = function (parameters) {
+        var scope = this;
 
         if (undefined === parameters) {
             parameters = {};
@@ -3048,9 +3220,9 @@
             throw new Error("Must define mainTexture!");
         }
 
-        DisplayObject.call(that, parameters);
+        DisplayObject.call(scope, parameters);
 
-        that.material.shader.setShaderProgramIds("ss-shader-vs", "ss-shader-fs");
+        scope.material.shader.setShaderProgramIds("ss-shader-vs", "ss-shader-fs");
 
         var _animations = [],
 
@@ -3058,8 +3230,8 @@
             _currentTimeMS = 0,
             _currentFrame = 0,
 
-            _totalFrameWidth = that.material.mainTexture.getWidth() / that.getWidth(),
-            _totalFrameHeight = that.material.mainTexture.getHeight() / that.getWidth(),
+            _totalFrameWidth = scope.material.mainTexture.getWidth() / scope.getWidth(),
+            _totalFrameHeight = scope.material.mainTexture.getHeight() / scope.getWidth(),
 
             _normalizedFrameWidth = 1 / _totalFrameWidth,
             _normalizedFrameHeight = 1 / _totalFrameHeight,
@@ -3068,15 +3240,31 @@
 
         _blendCurve.easingFunction = Easing.Quadratic.In;
 
-        that.getBlendCurve = function() {
+        /**
+         * @function global.SpriteSheet#getBlendCurve
+         * @desc Returns the AnimationCurve instance used for blending between
+         * frames.
+         * @returns {AnimationCurve}
+         */
+        scope.getBlendCurve = function() {
             return _blendCurve;
         };
 
-        that.addAnimation = function(animationData) {
+        /**
+         * @function global.SpriteSheet#addAnimation
+         * @desc Adds an Animation object to this SpriteSheet.
+         * @param {Animation} animationData The Animation instane to add.
+         */
+        scope.addAnimation = function(animationData) {
             _animations.push(animationData);
         };
 
-        that.removeAnimationByName = function(animationName) {
+        /**
+         * @function global.SpriteSheet#removeAnimationByName
+         * @desc Removes an Animation instance by name.
+         * @param {String} animationName The name of the Animation to remove.
+         */
+        scope.removeAnimationByName = function(animationName) {
             for (var i = 0, len = _animations.length; i < len; i++) {
                 if (_animations[i].name === animationName) {
                     _animations = _animations.splice(i, 0);
@@ -3085,7 +3273,12 @@
             }
         };
 
-        that.setCurrentAnimationByName = function(animationName) {
+        /**
+         * @function global.SpriteSheet#setCurrentAnimationByName
+         * @desc Sets the current Animation to play back by name.
+         * @param {String} animationName The name of the Animation to play.
+         */
+        scope.setCurrentAnimationByName = function(animationName) {
             if (null !== _currentAnimation && _currentAnimation.name === animationName) {
                 return;
             }
@@ -3099,11 +3292,21 @@
             }
         };
 
-        that.getCurrentAnimation = function() {
+        /**
+         * @function global.SpriteSheet#getCurrentAnimation
+         * @desc Retrieves the currently playing Animation.
+         * @returns {Animation}
+         */
+        scope.getCurrentAnimation = function() {
             return _currentAnimation;
         };
 
-        that.setCurrentFrame = function(value) {
+        /**
+         * @function global.SpriteSheet#setCurrentFrame
+         * @desc Sets the current frame.
+         * @param {Number} value The frame number to play.
+         */
+        scope.setCurrentFrame = function(value) {
             // get the animation
             var animation = _currentAnimation;
             if (null === animation) {
@@ -3124,11 +3327,22 @@
             updateUVs();
         };
 
-        that.getCurrentFrame = function() {
+        /**
+         * @function global.SpriteSheet#getCurrentFrame
+         * @desc Returns the number of the frame currently playing.
+         * @returns {number}
+         */
+        scope.getCurrentFrame = function() {
             return _currentFrame;
         };
 
-        that.setCurrentTime = function(value) {
+        /**
+         * @function global.SpriteSheet#setCurrentTime
+         * @desc Rather than setting the frame number, the time may also be
+         * set, in which case, the frame number is derived.
+         * @param value
+         */
+        scope.setCurrentTime = function(value) {
             // get the animation
             var animation = _currentAnimation;
             if (null === animation) {
@@ -3142,7 +3356,7 @@
             var newFrame = Math.floor(_currentTimeMS / msPerFrame) % animation.animationLength;
 
             // set the blend uniform
-            that.material.shader.setUniformFloat(
+            scope.material.shader.setUniformFloat(
                 "uFutureBlendScalar",
                 _blendCurve.evaluate((_currentTimeMS % msPerFrame) / msPerFrame));
 
@@ -3156,10 +3370,22 @@
             updateUVs();
         };
 
-        that.update = function(dt) {
-            that.setCurrentTime(_currentTimeMS + dt);
+        /**
+         * @function global.SpriteSheet#update
+         * @desc Updates the SpriteSheet. This method motors the animation.
+         * @param {Number} dt The time, in seconds, since the last update was
+         * called.
+         */
+        scope.update = function(dt) {
+            scope.setCurrentTime(_currentTimeMS + dt);
         };
 
+        /**
+         * @function global.SpriteSheet#updateUVs
+         * @private
+         * @desc Updates the uv buffer. Since SpriteSheets actually upload two
+         * frames at a time, the color buffer also holds uv information.
+         */
         function updateUVs() {
             // get the animation
             var animation = _currentAnimation;
@@ -3178,7 +3404,7 @@
             var normalizedFrameY = frameY / _totalFrameHeight;
 
             // set the uvs
-            var uvs = that.geometry.uvs;
+            var uvs = scope.geometry.uvs;
             uvs[0] = normalizedFrameX;
             uvs[1] = normalizedFrameY;
 
@@ -3204,7 +3430,7 @@
             normalizedFrameY = frameY / _totalFrameHeight;
 
             // set the uvs
-            var colors = that.geometry.colors;
+            var colors = scope.geometry.colors;
             colors[0] = normalizedFrameX;
             colors[1] = normalizedFrameY;
 
@@ -3217,17 +3443,14 @@
             colors[12] = normalizedFrameX + _normalizedFrameWidth;
             colors[13] = normalizedFrameY + _normalizedFrameHeight;
 
-            that.geometry.apply();
+            scope.geometry.apply();
         }
 
-        return that;
+        return scope;
     };
 
-    SpriteSheet.prototype = new DisplayObject();
-    SpriteSheet.prototype.constructor = SpriteSheet;
-
-    global.Animation = Animation;
-    global.SpriteSheet = SpriteSheet;
+    global.SpriteSheet.prototype = new DisplayObject();
+    global.SpriteSheet.prototype.constructor = SpriteSheet;
 })(this);
 (function (global) {
     "use strict";
@@ -3238,6 +3461,7 @@
      * @param {Object} parameters A parameters object that will be passed to
      * the DisplayObject constructor.
      * @returns {StaticImage}
+     * @author thegoldenmule
      * @constructor
      */
     global.StaticImage = function (parameters) {
@@ -3320,73 +3544,95 @@
     // export
     global.FontLoader = FontLoader;
 })(this);
-/**
- * User: ti83
- * Date: 3/10/13
- */
-
-var Signal = signals.Signal;
-
-var ImageLoader = (function () {
-    "use strict";
-
-    return function () {
-        var that = this;
-
-        that.image = null;
-        that.onLoaded = new Signal();
-
-        return that;
-    };
-})();
-
-ImageLoader.prototype = {
-    constructor: ImageLoader,
-    load: function(url, imageElement) {
-        var that = this;
-
-        // TODO: consider pooling
-        if (undefined === imageElement) {
-            imageElement = new Image();
-        }
-
-        imageElement.onload = function() {
-            that.image = imageElement;
-            that.onLoaded.dispatch();
-        };
-        imageElement.crossOrigin = "localhost";
-        imageElement.src = url;
-    }
-};
-
-ImageLoader.loadResources = function(urls, callback) {
-    "use strict";
-
-    var loaded = 0;
-    function onLoaded(loader) {
-        if (++loaded === urls.length) {
-            callback(loaders);
-        }
-    }
-
-    var loaders = urls.map(function(url) {
-        var loader = new ImageLoader();
-        loader.onLoaded.add(onLoaded);
-        loader.load(url);
-        return loader;
-    });
-};
-/**
- * Author: thegoldenmule
- * Date: 3/23/13
- */
-
 (function (global) {
     "use strict";
 
     var Signal = signals.Signal;
 
-    var XMLLoader = function () {
+    /**
+     * @class ImageLoader
+     * @author thegoldenmule
+     * @desc This object provides an interface for loading textures into Image
+     * elements.
+     * @returns {ImageLoader}
+     * @constructor
+     */
+    global.ImageLoader = function () {
+        var scope = this;
+
+        /**
+         * @member global.ImageLoader#image
+         * @desc The Image element that is being loaded.
+         * @type {Image}
+         */
+        scope.image = null;
+
+        /**
+         * @member global.ImageLoader#onLoaded
+         * @desc This signal is dispatched when the Image has been loaded.
+         * @type {Signal}
+         */
+        scope.onLoaded = new Signal();
+
+        return scope;
+    };
+
+    global.ImageLoader.prototype = {
+        constructor: global.ImageLoader,
+
+        /**
+         * @function global.ImageLoader#load
+         * @desc Loads a url into an Image element.
+         * @param {String} url The URL to load.
+         * @param {Image} imageElement An optional Image instance to load through.
+         */
+        load: function(url, imageElement) {
+            var that = this;
+
+            // TODO: consider pooling
+            if (undefined === imageElement) {
+                imageElement = new Image();
+            }
+
+            imageElement.onload = function() {
+                that.image = imageElement;
+                that.onLoaded.dispatch();
+            };
+            imageElement.crossOrigin = "localhost";
+            imageElement.src = url;
+        }
+    };
+
+    /**
+     * @function global.ImageLoader#loadResources
+     * @static
+     * @desc Loads a list of URLs and calls the associated callback.
+     * @param {String} urls The List of URLs to load.
+     * @param {Function} callback A Function to call once the images have been
+     * loaded.
+     */
+    global.ImageLoader.loadResources = function(urls, callback) {
+        var loaded = 0;
+        function onLoaded(loader) {
+            if (++loaded === urls.length) {
+                callback(loaders);
+            }
+        }
+
+        var loaders = urls.map(function(url) {
+            var loader = new ImageLoader();
+            loader.onLoaded.add(onLoaded);
+            loader.load(url);
+            return loader;
+        });
+    };
+})(this);
+(function (global) {
+    "use strict";
+
+    var Signal = signals.Signal;
+
+    global.XMLLoader = function () {
         var scope = this;
 
         scope.onLoaded = new Signal();
@@ -3395,8 +3641,8 @@ ImageLoader.loadResources = function(urls, callback) {
         return scope;
     };
 
-    XMLLoader.prototype = {
-        constructor: XMLLoader,
+    global.XMLLoader.prototype = {
+        constructor: global.XMLLoader,
 
         load: function(url) {
             var scope = this;
@@ -3411,9 +3657,6 @@ ImageLoader.loadResources = function(urls, callback) {
             request.send(null);
         }
     };
-
-    // export
-    global.XMLLoader = XMLLoader;
 })(this);
 // Math extensions
 (function() {
@@ -3444,21 +3687,6 @@ ImageLoader.loadResources = function(urls, callback) {
         return ~~(min + Math.random() * (max - min));
     };
 })();
-/**
- * Default particle plugins:
- *
- * Position
- * Velocity
- * Acceleration
- * Lifetime
- * Attractor
- * ParticlePropertyAnimator
- * ScaleAnimator
- * AlphaAnimator
- * RotationAnimator
- *
- * @author thegoldenmule
- */
 (function(global) {
     "use strict";
 
@@ -3698,11 +3926,6 @@ ImageLoader.loadResources = function(urls, callback) {
     };
 
 })(this);
-/**
- * Author: thegoldenmule
- * Date: 5/27/13
- */
-
 (function (global) {
     "use strict";
 
@@ -3712,6 +3935,7 @@ ImageLoader.loadResources = function(urls, callback) {
      *
      * @param material The material to use.
      * @returns {*}
+     * @author thegoldenmule
      * @constructor
      */
     var Particle = function (material) {
@@ -3888,10 +4112,6 @@ ImageLoader.loadResources = function(urls, callback) {
     global.Particle = Particle;
     global.ParticleEmitter = ParticleEmitter;
 })(this);
-/**
- * Author: thegoldenmule
- */
-
 (function(global) {
     "use strict";
 
@@ -4111,6 +4331,7 @@ ImageLoader.loadResources = function(urls, callback) {
      * @desc Manages all objects in the scene and provides an interface for
      * querying.
      * @returns {SceneManager}
+     * @author thegoldenmule
      * @constructor
      */
     global.SceneManager = {
@@ -4280,6 +4501,7 @@ ImageLoader.loadResources = function(urls, callback) {
      * @class SceneQuery
      * @desc Tokenizes a single query string.
      * @param {String} The query string to tokenize.
+     * @author thegoldenmule
      *
      * @constructor
      */

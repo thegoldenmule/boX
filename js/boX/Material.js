@@ -1,8 +1,3 @@
-/**
- * Author: thegoldenmule
- * Date: 3/11/13
- */
-
 (function (global) {
     "use strict";
 
@@ -13,6 +8,7 @@
      * @desc Material's hold a Shader and texture information. Materials may be
      * shared between multiple DisplayObjects.
      * @returns {Material}
+     * @author thegoldenmule
      * @constructor
      */
     global.Material = function () {

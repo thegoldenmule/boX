@@ -8,6 +8,7 @@
      * @param {Number} g A normalized value for green.
      * @param {Number} b A normalized value for blue.
      * @returns {Color}
+     * @author thegoldenmule
      * @constructor
      */
     global.Color = function(r, g, b) {

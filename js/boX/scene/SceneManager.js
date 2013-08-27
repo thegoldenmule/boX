@@ -14,6 +14,7 @@
      * @desc Manages all objects in the scene and provides an interface for
      * querying.
      * @returns {SceneManager}
+     * @author thegoldenmule
      * @constructor
      */
     global.SceneManager = {

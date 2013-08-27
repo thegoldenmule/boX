@@ -10,6 +10,7 @@
      * @class SpriteSheetScheduler
      * @desc This object manages SpriteSheet updates.
      * @returns {SpriteSheetScheduler}
+     * @author thegoldenmule
      * @constructor
      */
     global.SpriteSheetScheduler = function () {

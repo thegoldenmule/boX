@@ -32,6 +32,7 @@
      * definitions may be compiled.
      *
      * @returns {Shader}
+     * @author thegoldenmule
      * @constructor
      */
     global.Shader = function() {

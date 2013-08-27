@@ -1,8 +1,3 @@
-/**
- * Author: thegoldenmule
- * Date: 3/10/13
- */
-
 (function (global) {
     "use strict";
 

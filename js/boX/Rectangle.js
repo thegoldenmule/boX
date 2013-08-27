@@ -9,6 +9,7 @@
      * @param {Number} w The width of the rectangle.
      * @param {Number} h The height of the rectangle.
      * @returns {Rectangle}
+     * @author thegoldenmule
      * @constructor
      */
     global.Rectangle = function(x, y, w, h) {

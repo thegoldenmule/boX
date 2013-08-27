@@ -1,7 +1,3 @@
-/**
- * Author: thegoldenmule
- */
-
 (function(global) {
     "use strict";
 

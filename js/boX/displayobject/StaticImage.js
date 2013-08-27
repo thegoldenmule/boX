@@ -7,6 +7,7 @@
      * @param {Object} parameters A parameters object that will be passed to
      * the DisplayObject constructor.
      * @returns {StaticImage}
+     * @author thegoldenmule
      * @constructor
      */
     global.StaticImage = function (parameters) {

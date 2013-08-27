@@ -5,6 +5,7 @@
      * @class SceneQuery
      * @desc Tokenizes a single query string.
      * @param {String} The query string to tokenize.
+     * @author thegoldenmule
      *
      * @constructor
      */

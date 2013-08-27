@@ -1,14 +1,9 @@
-/**
- * Author: thegoldenmule
- * Date: 3/23/13
- */
-
 (function (global) {
     "use strict";
 
     var Signal = signals.Signal;
 
-    var XMLLoader = function () {
+    global.XMLLoader = function () {
         var scope = this;
 
         scope.onLoaded = new Signal();
@@ -17,8 +12,8 @@
         return scope;
     };
 
-    XMLLoader.prototype = {
-        constructor: XMLLoader,
+    global.XMLLoader.prototype = {
+        constructor: global.XMLLoader,
 
         load: function(url) {
             var scope = this;
@@ -33,7 +28,4 @@
             request.send(null);
         }
     };
-
-    // export
-    global.XMLLoader = XMLLoader;
 })(this);
