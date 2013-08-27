@@ -8,24 +8,29 @@ bo-X (bo-chi) is a 2D rendering engine built on WebGL.
 * [SpriteSheet Example](http://thegoldenmule.com/labs/boX/demos/index-wyvern.html)
 * [Performance](http://thegoldenmule.com/labs/boX/demos/index-test.html)
 
-### Documentation (work in progress)
+### Documentation
 
+#### The Basics
 * [Getting Started](https://github.com/thegoldenmule/boX/blob/master/md/GettingStarted.md)
 * [`DisplayObject` and the Scene Graph](https://github.com/thegoldenmule/boX/blob/master/md/DisplayObject.md)
-* [`SceneManager` Queries with boQL](https://github.com/thegoldenmule/boX/blob/master/md/SceneManager.md)
-* [Animation Playback with `SpriteSheet`](https://github.com/thegoldenmule/boX/blob/master/md/SpriteSheet.md)
-* [The Beauty of `AnimationCurve`](https://github.com/thegoldenmule/boX/blob/master/md/AnimationCurve.md)
 
-Generated docs can be found here: http://thegoldenmule.com/labs/boX/docs/
+#### Fun Stuff
+* [`SceneManager` Queries with boQL](https://github.com/thegoldenmule/boX/blob/master/md/SceneManager.md)
+* [The Simple Beauty of `AnimationCurve`](https://github.com/thegoldenmule/boX/blob/master/md/AnimationCurve.md)
+* [Animation Playback with `SpriteSheet` and AnimationCurve](https://github.com/thegoldenmule/boX/blob/master/md/SpriteSheet.md)
+
+#### Documentation Generated from Source
+
+* New docs are pushed [**here**](http://thegoldenmule.com/labs/boX/docs/) every build.
 
 ### Contribute!
 
-Want to contribute? [Here's how](https://github.com/thegoldenmule/boX/blob/master/md/Contribute.md).
+Want to contribute? [**Here's how**](https://github.com/thegoldenmule/boX/blob/master/md/Contribute.md).
 
 ### Bugs?
 
-It's probably user error, but [here's how to submit issues](https://github.com/thegoldenmule/boX/blob/master/md/Bugs.md) if you must know.
+It's probably user error, but [**here's how to submit issues**](https://github.com/thegoldenmule/boX/blob/master/md/Bugs.md) if you must know.
 
 ### Roadmap
 
-Want to know where bo-X is headed? Take a look at our [roadmap](https://github.com/thegoldenmule/boX/blob/master/md/Roadmap.md).
+Want to know where bo-X is headed? Take a look at our [**roadmap**](https://github.com/thegoldenmule/boX/blob/master/md/Roadmap.md).
