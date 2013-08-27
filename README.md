@@ -14,6 +14,7 @@ bo-X (bo-chi) is a 2D rendering engine built on WebGL.
 * [`DisplayObject` and the Scene Graph](https://github.com/thegoldenmule/boX/blob/master/md/DisplayObject.md)
 * [`SceneManager` Queries with boQL](https://github.com/thegoldenmule/boX/blob/master/md/SceneManager.md)
 * [Animation Playback with `SpriteSheet`](https://github.com/thegoldenmule/boX/blob/master/md/SpriteSheet.md)
+* [The Beauty of `AnimationCurve`](https://github.com/thegoldenmule/boX/blob/master/md/AnimationCurve.md)
 
 Generated docs can be found here: http://thegoldenmule.com/labs/boX/docs/
 
