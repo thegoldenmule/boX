@@ -2,7 +2,7 @@
 You will find that bo-X contains no direct support for a tweening library. Instead, the `AnimationCurve` class controls all animated properties. `ParticleEmitters`, `SpriteSheets`-- everything is built specifically with curves in mind rather than tweening engines.
 
 ### What Are They?
-An `AnimationCurve` defines a smooth function through a set of points. Each point is given by `(x, t)` such that `x` and `t` are in the unit interval, `\[0, 1\]`. When combined with the included interpolation functions, an `AnimationCurve` will also always return a value in `\[0, 1\]`.
+An `AnimationCurve` defines a smooth function through a set of points. Each point is given by `(x, t)` such that `x` and `t` are in the unit interval, `[0, 1]`. When combined with the included interpolation functions, an `AnimationCurve` will also always return a value in `[0, 1]`.
 
 ### Why Shouldn't I Use a Tweening Engine?
 Tweening engines are great and their syntax is often great fun, but they create as many problems as they solve. Defining animations via a curve is not only more intuitive, it is easier and often more flexible.
@@ -17,36 +17,24 @@ Finally, abstracting away a tweening engine is an awful bit of work. For instanc
 
 ### I'm Convinced, Where Should I Start?
 
-A good place to look for examples is in `DefaultParticlePlugins.js`. Here you will see numerous uses of AnimationCurve to define property animators for scale, alpha and rotation. In fact, the `ParticlePropertyAnimator` can be used to create elaborate animations over any property of a particle. In `demos/js/particle/main.ja` you can see some of those plugins being used.
+A good place to look for examples is in `DefaultParticlePlugins.js`. Here you will see numerous uses of AnimationCurve to define property animators for scale, alpha and rotation. In fact, the `ParticlePropertyAnimator` can be used to create elaborate animations over any property of a particle. In `demos/js/particle/main.js` you can see some of those plugins being used.
 
-    // create a curve for scale from 0.2 -> 1
-	var scaleCurve = new AnimationCurve();
-	scaleCurve.getKeys()[0].value = 0.2;
+    // create the scale curve from 0.2 -> 1
+    var _scaleCurve = new AnimationCurve();
+    _scaleCurve.getKeys()[0].value = 0.2;
 
-	// create a curve for alpha, but reverse it (from 1 -> 0)
-	var alphaCurve = new AnimationCurve();
-	alphaCurve.getKeys()[0].value = 1;
-	alphaCurve.getKeys()[1].value = 0;
+    // create emitter
+    var emitter = new ParticleEmitter([
+        new particle.Position(0, 0, 2),
+        new particle.Acceleration(0, -0.0098),
+        new particle.ScaleAnimator(_scaleCurve, 20),
+        new particle.AlphaAnimator(new AnimationCurve([
+            0, 1,
+            1, 0
+        ])),
+        new particle.RotationAnimator(new AnimationCurve(), 2)
+    ]);
 
-    // create the emitter
-	var emitter = new ParticleEmitter([
-		new particle.Position(0, 0, 2),
-		new particle.Rotation(),
-		new particle.Velocity(
-			Math.PI / 4,
-			3 * Math.PI / 4,
-			0.3, 0.7),
-		new particle.Acceleration(0, -0.0098),
-		new particle.ScaleAnimator(scaleCurve, 20),
-		new particle.AlphaAnimator(alphaCurve),
-		new particle.RotationAnimator(new AnimationCurve(), 2)
-	]);
-	emitter.emissionRate = 2;
-	emitter.lifetime = 2000;
-	emitter.transform.position.x = emitter.transform.position.y = 300;
-	emitter.tint = new Color(1, 0, 0);
-	scene.root.addChild(emitter);
+By default, an `AnimationCurve` instance has two keys: `(0, 0)` and `(1, 1)` and a `Quadratic.InOut` ease function that interpolates between them. To govern scale, we use a curve from 0.2 > 1, but the ScaleAnimator constructor also takes a scalar which multiplies the output of the curve. In this case we pass in `20` so we get a nice smooth scale from 4 to 20.
 
-By default, an `AnimationCurve` instance has two keys: `(0, 0)` and `(1, 1)` and a `Quadratic.InOut` ease function that interpolates between them. To govern scale, we use a curve from 0.2 -> 1, but the ScaleAnimator object also takes a scalar which multiplies the output of the curve. In this case we pass in `20` so we get a nice smooth scale from 4 to 20.
-
-The curve governing the alpha of particles we've switched: so instead of moving from 0 -> 1, the alpha moves smoothly from 1 -> 0, fading out the particles.
+For the curve governing the alpha, we can use a list of pairs to initialize the curve. Instead of the default curve from (0, 0) to (1, 1), we flipped the values so that the particles fade out over the interval.

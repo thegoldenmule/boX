@@ -6957,18 +6957,34 @@ if(typeof(exports) !== 'undefined') {
      * @class AnimationCurve
      * @desc Defines a continuous function through points in the unit interval
      * on R^2. These points are given as AnimationCurveKeys.
-     * @param {Array} keys An optional array of AnimationCurveKeys to populate
-     * the curve with.
+     * @param {Array} keys An optional array of Number to populate the
+     * AnimationCurve. There should be an even number of floats, each pair
+     * representing an (x, t) point.
+     *
+     * @example
+     * var curve = new AnimationCurve([
+     *  0, 0,
+     *  0.5, 1,
+     *  1, 0]);
+     *
      * @returns {AnimationCurve}
      * @constructor
      */
     global.AnimationCurve = function (keys) {
         var scope = this;
 
-        var _keys = [
-            new global.AnimationCurveKey(0, 0),
-            new global.AnimationCurveKey(1, 1)
-        ];
+        var _keys = [];
+
+        if (undefined === keys) {
+            _keys = [
+                new global.AnimationCurveKey(0, 0),
+                new global.AnimationCurveKey(1, 1)
+            ];
+        } else {
+            for (var i = 0; i < keys.length - 1; i+=2) {
+                _keys.push(new global.AnimationCurveKey(keys[i], keys[i + 1]));
+            }
+        }
 
         /**
          * @member global.AnimationCurve#easingFunction
@@ -9770,4 +9786,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Mon, 26 Aug 2013 20:10:42 -0700";
+var __buildTimestamp = "Mon, 26 Aug 2013 20:25:57 -0700";
