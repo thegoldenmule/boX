@@ -296,12 +296,12 @@
      * @constructor
      */
     global.Engine = function() {
-        var that = this;
+        var scope = this;
 
         // Public Vars
-        that.paused = false;
-        that.onPreUpdate = new Signal();
-        that.onPostUpdate = new Signal();
+        scope.paused = false;
+        scope.onPreUpdate = new Signal();
+        scope.onPostUpdate = new Signal();
 
         /// Private Variables
         var _initialized = false,
@@ -309,7 +309,15 @@
             _scene = new Scene(),
             _spriteSheetScheduler = new SpriteSheetScheduler(),
             _lastUpdate = 0,
-            _totalTime = 0;
+            _totalTime = 0,
+            _stopped = false;
+
+        /**
+         * @field global.Engine#simulationTimeMultiplier
+         * @desc Multiplies the dt values propagated via the update cycle.
+         * @type {number}
+         */
+        scope.simulationTimeMultiplier = 1;
 
         /**
          * @method global.Engine#getSimulationTime
@@ -318,7 +326,7 @@
          * @returns {Number} The time, in seconds, since the start of the
          * simulation.
          */
-        that.getSimulationTime = function() {
+        scope.getSimulationTime = function() {
             return _totalTime;
         };
 
@@ -327,7 +335,7 @@
          * @desc Returns the WebGLRenderer instance.
          * @returns {WebGLRenderer}
          */
-        that.getRenderer = function() {
+        scope.getRenderer = function() {
             return _renderer;
         };
 
@@ -336,7 +344,7 @@
          * @desc Returns the Scene being rendered.
          * @returns {Scene}
          */
-        that.getScene = function() {
+        scope.getScene = function() {
             return _scene;
         };
 
@@ -345,7 +353,7 @@
          * @desc Returns the SpriteSheetScheduler for updating SpriteSheets.
          * @returns {SpriteSheetScheduler}
          */
-        that.getSpriteSheetScheduler = function() {
+        scope.getSpriteSheetScheduler = function() {
             return _spriteSheetScheduler;
         };
 
@@ -356,7 +364,7 @@
          * @param {WebGLRenderer} renderer The WebGLRenderer to render the
          * scene with.
          */
-        that.initialize = function(renderer) {
+        scope.initialize = function(renderer) {
             if (true === _initialized) {
                 throw new Error("Cannot initialize Engine twice!");
             }
@@ -370,7 +378,7 @@
             window.requestAnimationFrame(
                 function Step() {
                     var now = Date.now();
-                    var dt = now - _lastUpdate;
+                    var dt = (now - _lastUpdate) * scope.simulationTimeMultiplier;
                     _lastUpdate = now;
 
                     update(dt);
@@ -379,24 +387,41 @@
                 });
         };
 
-        /// Private Methods
+        /**
+         * @method global.Engine#start
+         * @desc Starts the simulation. This is automatically called by
+         * initialize.
+         */
+        scope.start = function() {
+            _stopped = false;
+        };
+
+        /**
+         * @method global.Engine#stop
+         * @desc Stops the simulation.
+         */
+        scope.stop = function() {
+            _stopped = true;
+        };
+
+        /// Private Method
         function update(dt) {
-            if (that.paused) {
+            if (scope.paused) {
                 return;
             }
 
             _totalTime += dt;
 
             _renderer.preUpdate();
-            that.onPreUpdate.dispatch(dt);
+            scope.onPreUpdate.dispatch(dt);
             _spriteSheetScheduler.onPreUpdate(dt);
 
             _scene.update(dt, _renderer);
 
-            that.onPostUpdate.dispatch(dt);
+            scope.onPostUpdate.dispatch(dt);
         }
 
-        return that;
+        return scope;
     };
 
     global.Engine.prototype = {
@@ -543,26 +568,63 @@
 
     var GUIDS = 0;
 
-    var Material = function () {
+    /**
+     * @class Material
+     * @desc Material's hold a Shader and texture information. Materials may be
+     * shared between multiple DisplayObjects.
+     * @returns {Material}
+     * @constructor
+     */
+    global.Material = function () {
         var scope = this;
 
         // get unique id
         var _id = GUIDS++;
 
+        /**
+         * @function global.Material#getId
+         * @desc Returns an id unique across all Materials.
+         * @returns {number}
+         */
         scope.getId = function() {
             return _id;
         };
 
+        /**
+         * @member global.Material#shader
+         * @desc The Shader instance for this Material. This object compiles the
+         * glsl and acts as an interface for uploading uniforms and attribtes.
+         * @type {Shader}
+         */
         scope.shader = new Shader();
+
+        /**
+         * @member global.Material#mainTexture
+         * @desc The Texture uploaded as the Shader's main texture. This is
+         * used for most texture mapping.
+         * @type {Texture}
+         */
         scope.mainTexture = new Texture();
+
+        /**
+         * @member global.Material#secTexture
+         * @desc The secondary texture to upload. This is unused most of the
+         * time unless a custom shader requires it.
+         * @type {Texture}
+         */
         scope.secTexture = new Texture();
 
         return scope;
     };
 
-    Material.prototype = {
-        constructor:Material,
+    global.Material.prototype = {
+        constructor:global.Material,
 
+        /**
+         * @function global.Material#prepareTextures
+         * @desc Prepares Textures for upload.
+         * @param {WebGLContext} ctx The context to prepare textures for.
+         */
         prepareTextures: function(ctx) {
             if (null !== this.mainTexture) {
                 this.mainTexture.prepareTexture(ctx);
@@ -573,79 +635,22 @@
             }
         },
 
-        pushTextures: function(ctx, shader) {
+        /**
+         * @function global.Material#pushTextures
+         * @desc Uploads Textures to the GPU.
+         * @param {WebGLContext} ctx The context to push textures to.
+         */
+        pushTextures: function(ctx) {
             if (null !== this.mainTexture) {
-                this.mainTexture.pushTexture(ctx, shader, ctx.TEXTURE0);
+                this.mainTexture.pushTexture(ctx, this.shader, ctx.TEXTURE0);
             }
 
             if (null !== this.secTexture) {
-                this.secTexture.pushTexture(ctx, shader, ctx.TEXTURE1);
+                this.secTexture.pushTexture(ctx, this.shader, ctx.TEXTURE1);
             }
         }
     };
-
-    // export
-    global.Material = Material;
 })(this);
-/**
- * User: ti83
- * Date: 3/10/13
- */
-
-(function(global) {
-    "use strict";
-
-    var __tempVec3 = vec3.create();
-
-    var Rectangle = function(x, y, w, h) {
-        var scope = this;
-
-        scope.x = undefined === x ? 0 : x;
-        scope.y = undefined === y ? 0 : y;
-        scope.w = undefined === w ? 0 : w;
-        scope.h = undefined === h ? 0 : h;
-
-        return scope;
-    };
-
-    Rectangle.prototype = {
-        constructor: Rectangle,
-
-        zero: function() {
-            this.x = this.y = this.w = this.h = 0;
-        },
-
-        set: function(x, y, w, h) {
-            this.x = x;
-            this.y = y;
-            this.w = w;
-            this.h = h;
-        },
-
-        copy: function(rect) {
-            this.x = rect.x;
-            this.y = rect.y;
-            this.w = rect.w;
-            this.h = rect.h;
-        }
-    };
-
-    global.Rectangle = Rectangle;
-
-})(this);
-
-// Math extensions
-(function() {
-    "use strict";
-
-    Math.clamp = function(value, min, max) {
-        return value < min ? min : value > max ? max : value;
-    };
-
-    Math.randomInt = function(min, max) {
-        return ~~(min + Math.random() * (max - min));
-    };
-})();
 /**
  * User: ti83
  * Date: 3/9/13
@@ -756,6 +761,62 @@
     // export
     global.Quad = Quad;
 })(this);
+(function(global) {
+    "use strict";
+
+    /**
+     * @class Rectangle
+     * @desc Describes a rectangle.
+     * @param {Number} x The x position of the rectangle.
+     * @param {Number} y The y position of the rectangle.
+     * @param {Number} w The width of the rectangle.
+     * @param {Number} h The height of the rectangle.
+     * @returns {Rectangle}
+     * @constructor
+     */
+    global.Rectangle = function(x, y, w, h) {
+        var scope = this;
+
+        scope.x = undefined === x ? 0 : x;
+        scope.y = undefined === y ? 0 : y;
+        scope.w = undefined === w ? 0 : w;
+        scope.h = undefined === h ? 0 : h;
+
+        return scope;
+    };
+
+    global.Rectangle.prototype = {
+        constructor: global.Rectangle,
+
+        /**
+         * @function global.Rectangle#set
+         * @desc Sets a Rectangle's properties.
+         * @param {Number} x The x position of the rectangle.
+         * @param {Number} y The y position of the rectangle.
+         * @param {Number} w The width of the rectangle.
+         * @param {Number} h The height of the rectangle.
+         */
+        set: function(x, y, w, h) {
+            this.x = x;
+            this.y = y;
+            this.w = w;
+            this.h = h;
+        },
+
+        /**
+         * @function global.Rectangle#copy
+         * @desc Copies the data from a Rectangle.
+         * @param {Rectangle} rect The Rectangle to copy data from.
+         */
+        copy: function(rect) {
+            this.x = rect.x;
+            this.y = rect.y;
+            this.w = rect.w;
+            this.h = rect.h;
+        }
+    };
+
+})(this);
 /**
  * Author: thegoldenmule
  * Date: 3/20/13
@@ -828,9 +889,15 @@
  * Time: 8:26 PM
  */
 
-var Shader = (function() {
+(function(global) {
     "use strict";
 
+    /**
+     * @desc Defines potential types of uniforms.
+     * @static
+     * @private
+     * @type {{FLOAT: number, VEC2: number, VEC3: number, VEC4: number, MAT2: number, MAT3: number, MAT4: number}}
+     */
     var ShaderUniformTypes = {
         FLOAT   : 0,
 
@@ -843,18 +910,88 @@ var Shader = (function() {
         MAT4    : 6
     };
 
-    return function() {
+    /**
+     * @class Shader
+     * @desc Defines an object that represents a glsl shader. This object
+     * provides an interface through which uniforms may be uploaded and shader
+     * definitions may be compiled.
+     *
+     * @returns {Shader}
+     * @constructor
+     */
+    global.Shader = function() {
         var that = this;
 
+        /**
+         * @member global.Shader#vertexBufferAttributePointer
+         * @desc This pointer is updated when the shader is compiled and points
+         * to the index of the vertex buffer.
+         * @type {number}
+         */
         that.vertexBufferAttributePointer = null;
+
+        /**
+         * @member global.Shader#vertexColorBufferAttributePointer
+         * @desc This pointer is updated when the shader is compiled and points
+         * to the index of the vertex color buffer.
+         * @type {number}
+         */
         that.vertexColorBufferAttributePointer = null;
+
+        /**
+         * @member global.Shader#uvBufferAttributePointer
+         * @desc This pointer is updated when the shader is compiled and points
+         * to the index of the vertex uv buffer.
+         * @type {number}
+         */
         that.uvBufferAttributePointer = null;
 
+        /**
+         * @member global.Shader#projectionMatrixUniformPointer
+         * @desc This pointer is updated when the shader is compiled and points
+         * to the index of the projection matrix uniform.
+         * @type {number}
+         */
         that.projectionMatrixUniformPointer = null;
+
+        /**
+         * @member global.Shader#modelMatrixUniformPointer
+         * @desc This pointer is updated when the shader is compiled and points
+         * to the index of the model matrix uniform.
+         * @type {number}
+         */
         that.modelMatrixUniformPointer = null;
+
+        /**
+         * @member global.Shader#colorUniformPointer
+         * @desc This pointer is updated when the shader is compiled and points
+         * to the index of the color uniform.
+         * @type {number}
+         */
         that.colorUniformPointer = null;
+
+        /**
+         * @member global.Shader#depthUniformPointer
+         * @desc This pointer is updated when the shader is compiled and points
+         * to the index of the depth uniform.
+         * @type {number}
+         */
         that.depthUniformPointer = null;
+
+        /**
+         * @member global.Shader#mainTextureUniformPointer
+         * @desc This pointer is updated when the shader is compiled and points
+         * to the index of the main texture uniform.
+         * @type {number}
+         */
         that.mainTextureUniformPointer = null;
+
+        /**
+         * @member global.Shader#secTextureUniformPointer
+         * @desc This pointer is updated when the shader is compiled and points
+         * to the index of the secondary texture uniform.
+         * @type {number}
+         */
         that.secTextureUniformPointer = null;
 
         var _compiled = false,
@@ -865,6 +1002,13 @@ var Shader = (function() {
 
             _customUniforms = {};
 
+        /**
+         * @function global.Shader#setShaderProgramIds
+         * @desc This method sets the ids of the vertex and fragment shaders.
+         * Once these are changed, the shader needs to be recompiled.
+         * @param {String} vertex The id of the vertex shader.
+         * @param {String} fragment The id of the fragment shader.
+         */
         that.setShaderProgramIds = function(vertex, fragment) {
             if (vertex === _vertexProgramId && fragment === _fragmentProgramId) {
                 return;
@@ -873,43 +1017,91 @@ var Shader = (function() {
             _vertexProgramId = vertex;
             _fragmentProgramId = fragment;
 
+            _shaderProgram = null;
+
             _compiled = false;
         };
 
+        /**
+         * @function global.Shader#getShaderProgram
+         * @desc Once compiled, this function returns the shader program that
+         * should be uploaded to the GPU.
+         * @returns {GLShaderProgram}
+         */
         that.getShaderProgram = function() {
             return _shaderProgram;
         };
 
-        function setUniformValue(type) {
-            return function (name, value) {
-                if (undefined === _customUniforms[name]) {
-                    _customUniforms[name] = {
-                        type: type,
-                        pointer: -1,
-                        value: value
-                    };
-
-                    _dirtyPointers = true;
-                } else {
-                    _customUniforms[name].value = value;
-                }
-            };
-        }
-
+        /**
+         * @function global.Shader#setUniformFloat
+         * @desc Sets a float value for a specific uniform.
+         * @param {String} name The name of the uniform to set.
+         * @param {Number} value The value to upload.
+         * @type {Function}
+         */
         that.setUniformFloat = setUniformValue(ShaderUniformTypes.FLOAT);
 
+        /**
+         * @function global.Shader#setUniformVec2
+         * @desc Sets a vec2 value for a specific uniform.
+         * @param {String} name The name of the uniform to set.
+         * @param {Float32Array} value The value to upload.
+         * @type {Function}
+         */
         that.setUniformVec2 = setUniformValue(ShaderUniformTypes.VEC2);
 
+        /**
+         * @function global.Shader#setUniformVec3
+         * @desc Sets a vec3 value for a specific uniform.
+         * @param {String} name The name of the uniform to set.
+         * @param {Float32Array} value The value to upload.
+         * @type {Function}
+         */
         that.setUniformVec3 = setUniformValue(ShaderUniformTypes.VEC3);
 
+        /**
+         * @function global.Shader#setUniformVec4
+         * @desc Sets a vec4 value for a specific uniform.
+         * @param {String} name The name of the uniform to set.
+         * @param {Float32Array} value The value to upload.
+         * @type {Function}
+         */
         that.setUniformVec4 = setUniformValue(ShaderUniformTypes.VEC4);
 
+        /**
+         * @function global.Shader#setUniformMat2
+         * @desc Sets a mat2 value for a specific uniform.
+         * @param {String} name The name of the uniform to set.
+         * @param {Float32Array} value The value to upload.
+         * @type {Function}
+         */
         that.setUniformMat2 = setUniformValue(ShaderUniformTypes.MAT2);
 
+        /**
+         * @function global.Shader#setUniformMat3
+         * @desc Sets a mat3 value for a specific uniform.
+         * @param {String} name The name of the uniform to set.
+         * @param {Float32Array} value The value to upload.
+         * @type {Function}
+         */
         that.setUniformMat3 = setUniformValue(ShaderUniformTypes.MAT3);
 
+        /**
+         * @function global.Shader#setUniformMat4
+         * @desc Sets a mat4 value for a specific uniform.
+         * @param {String} name The name of the uniform to set.
+         * @param {Float32Array} value The value to upload.
+         * @type {Function}
+         */
         that.setUniformMat4 = setUniformValue(ShaderUniformTypes.MAT4);
 
+        /**
+         * @function global.Shader#compile
+         * @desc Compiles a shader, given a WebGLContext. This is necessary if
+         * the context is lost or the shader ids have been changed.
+         * @param {WebGLContext} ctx The context to compile with.
+         * @returns {boolean} Returns true if successful.
+         */
         that.compile = function(ctx) {
             if (!_compiled) {
                 if (null === _vertexProgramId || null === _fragmentProgramId) {
@@ -954,7 +1146,11 @@ var Shader = (function() {
             return true;
         };
 
-        // TODO: This is obviously not optimal!
+        /**
+         * @function global.Shader#pushCustomUniforms
+         * @desc This method uploads all custom uniforms to the GPU.
+         * @param {WebGLContext} ctx The context to upload through.
+         */
         that.pushCustomUniforms = function(ctx) {
             Object.keys(_customUniforms).forEach(
                 function(name) {
@@ -995,8 +1191,40 @@ var Shader = (function() {
                 });
         };
 
-        // This function is based on
-        // https://developer.mozilla.org/en-US/docs/WebGL/Adding_2D_content_to_a_WebGL_context.
+        /**
+         * @private
+         * @desc Returns a function that will set a uniform by type.
+         * @param {Number} type The type of uniform.
+         * @returns {Function}
+         */
+        function setUniformValue(type) {
+            return function (name, value) {
+                if (undefined === _customUniforms[name]) {
+                    _customUniforms[name] = {
+                        type: type,
+                        pointer: -1,
+                        value: value
+                    };
+
+                    _dirtyPointers = true;
+                } else {
+                    _customUniforms[name].value = value;
+                }
+            };
+        }
+
+        /**
+         * @function global.Shader#compuleShader
+         * @private
+         * @desc Heavily borrowed from:
+         * https://developer.mozilla.org/en-US/docs/WebGL/Adding_2D_content_to_a_WebGL_context
+         *
+         * This method compiles a shader by element id.
+         * @param {WebGLContext} ctx The context with which to compile
+         * @param {string} id The string id of the DOMElement containing the
+         * shader definition.
+         * @returns {GLShaderProgram}
+         */
         function compileShader(ctx, id) {
             var script = document.getElementById(id);
 
@@ -1044,12 +1272,24 @@ var Shader = (function() {
             return shader;
         }
 
+        /**
+         * @function global.Shader#setupPointers
+         * @desc Sets up all uniform + attribute pointers.
+         * @param {WebGLContext} ctx The context from which to grab pointers.
+         * @private
+         */
         function setupPointers(ctx) {
             setupAttributePointers(ctx);
             setupUniformPointers(ctx);
             setupCustomUniformPointers(ctx);
         }
 
+        /**
+         * @function global.Shader#setupAttributePointers
+         * @desc Sets up all attribute pointers.
+         * @param {WebGLContext} ctx The context from which to grab pointers.
+         * @private
+         */
         function setupAttributePointers(ctx) {
             that.vertexBufferAttributePointer = ctx.getAttribLocation(_shaderProgram, "aPosition");
             if (-1 !== that.vertexBufferAttributePointer) {
@@ -1067,6 +1307,12 @@ var Shader = (function() {
             }
         }
 
+        /**
+         * @function global.Shader#setupUniformPointers
+         * @desc Sets up all uniform pointers.
+         * @param {WebGLContext} ctx The context from which to grab pointers.
+         * @private
+         */
         function setupUniformPointers(ctx) {
             that.projectionMatrixUniformPointer = ctx.getUniformLocation(_shaderProgram, "uProjectionMatrix");
             that.modelMatrixUniformPointer = ctx.getUniformLocation(_shaderProgram, "uModelViewMatrix");
@@ -1076,7 +1322,14 @@ var Shader = (function() {
             that.secTextureUniformPointer = ctx.getUniformLocation(_shaderProgram, "uSecTextureSampler");
         }
 
-        // TODO: This method is obviously not optimal!
+        /**
+         * TODO: This is suboptimal.
+         *
+         * @function global.Shader#setupCustomUniformPointers
+         * @desc Sets up all custom uniform pointers.
+         * @param {WebGLContext} ctx The context from which to grab pointers.
+         * @private
+         */
         function setupCustomUniformPointers(ctx) {
             Object.keys(_customUniforms).forEach(
                 function(name) {
@@ -1087,7 +1340,11 @@ var Shader = (function() {
 
         return that;
     };
-})();
+
+    global.Shader.prototype = {
+        constructor: global.Shader
+    };
+})(this);
 /**
  * Author: thegoldenmule
  * Date: 5/26/13
@@ -1096,19 +1353,42 @@ var Shader = (function() {
 (function (global) {
     "use strict";
 
-    var SpriteSheetScheduler = function () {
+    /**
+     * @class SpriteSheetScheduler
+     * @desc This object manages SpriteSheet updates.
+     * @returns {SpriteSheetScheduler}
+     * @constructor
+     */
+    global.SpriteSheetScheduler = function () {
         var scope = this;
 
         var _spriteSheets = new Set();
 
+        /**
+         * @function global.SpriteSheetScheduler#addSpriteSheet
+         * @desc Adds a SpriteSheet to be managed. Updates are not guaranteed
+         * to be ordered.
+         * @param {SpriteSheet} spriteSheet The SpriteSheet instance to manage.
+         */
         scope.addSpriteSheet = function(spriteSheet) {
             _spriteSheets.add(spriteSheet);
         };
 
+        /**
+         * @function global.SpriteSheetScheduler#removeSpriteSheet
+         * @desc Removes a SpriteSheet from management.
+         * @param {SpriteSheet} spriteSheet The SpriteSheet to remove.
+         */
         scope.removeSpriteSheet = function(spriteSheet) {
             _spriteSheets.remove(spriteSheet);
         };
 
+        /**
+         * @function globalSpriteSheetScheduler#onPreUpdate
+         * @desc Should be called as part of bo-X's preupdate cycle.
+         * @param {Number} dt The amount of time that has passed since last
+         * update.
+         */
         scope.onPreUpdate = function(dt) {
             var elements = _spriteSheets.getElements();
             for (var i = 0, len = elements.length; i < len; i++) {
@@ -1119,12 +1399,9 @@ var Shader = (function() {
         return scope;
     };
 
-    SpriteSheetScheduler.prototype = {
-        constructor: SpriteSheetScheduler
+    global.SpriteSheetScheduler.prototype = {
+        constructor: global.SpriteSheetScheduler
     };
-
-    // export
-    global.SpriteSheetScheduler = SpriteSheetScheduler;
 })(this);
 /**
  * Author: thegoldenmule
@@ -1478,7 +1755,7 @@ var Shader = (function() {
 
             // TODO: evaluate where this belongs
             displayObject.material.prepareTextures(context);
-            displayObject.material.pushTextures(context, shader);
+            displayObject.material.pushTextures(context);
 
             displayObject.geometry.prepareBuffers(context);
             displayObject.geometry.pushBuffers(context, shader);
@@ -3122,6 +3399,35 @@ ImageLoader.loadResources = function(urls, callback) {
     // export
     global.XMLLoader = XMLLoader;
 })(this);
+// Math extensions
+(function() {
+    "use strict";
+
+    /**
+     * @static
+     * @function Math#clamp
+     * @desc Clamps a value between min and max.
+     * @param {Number} value The value to clamp.
+     * @param {Number} min The minimum allowed.
+     * @param {Number} max The maximum allowed.
+     * @returns {Number}
+     */
+    Math.clamp = function(value, min, max) {
+        return value < min ? min : value > max ? max : value;
+    };
+
+    /**
+     * @static
+     * @function Math#randomInt
+     * @desc Returns a random int in an interval.
+     * @param {Number} min The minimum value of the random number.
+     * @param {Number} max The maximum value of the random number.
+     * @returns {number}
+     */
+    Math.randomInt = function(min, max) {
+        return ~~(min + Math.random() * (max - min));
+    };
+})();
 /**
  * Default particle plugins:
  *

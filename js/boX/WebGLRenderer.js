@@ -200,7 +200,7 @@
 
             // TODO: evaluate where this belongs
             displayObject.material.prepareTextures(context);
-            displayObject.material.pushTextures(context, shader);
+            displayObject.material.pushTextures(context);
 
             displayObject.geometry.prepareBuffers(context);
             displayObject.geometry.pushBuffers(context, shader);

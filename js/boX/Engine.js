@@ -17,12 +17,12 @@
      * @constructor
      */
     global.Engine = function() {
-        var that = this;
+        var scope = this;
 
         // Public Vars
-        that.paused = false;
-        that.onPreUpdate = new Signal();
-        that.onPostUpdate = new Signal();
+        scope.paused = false;
+        scope.onPreUpdate = new Signal();
+        scope.onPostUpdate = new Signal();
 
         /// Private Variables
         var _initialized = false,
@@ -30,7 +30,15 @@
             _scene = new Scene(),
             _spriteSheetScheduler = new SpriteSheetScheduler(),
             _lastUpdate = 0,
-            _totalTime = 0;
+            _totalTime = 0,
+            _stopped = false;
+
+        /**
+         * @field global.Engine#simulationTimeMultiplier
+         * @desc Multiplies the dt values propagated via the update cycle.
+         * @type {number}
+         */
+        scope.simulationTimeMultiplier = 1;
 
         /**
          * @method global.Engine#getSimulationTime
@@ -39,7 +47,7 @@
          * @returns {Number} The time, in seconds, since the start of the
          * simulation.
          */
-        that.getSimulationTime = function() {
+        scope.getSimulationTime = function() {
             return _totalTime;
         };
 
@@ -48,7 +56,7 @@
          * @desc Returns the WebGLRenderer instance.
          * @returns {WebGLRenderer}
          */
-        that.getRenderer = function() {
+        scope.getRenderer = function() {
             return _renderer;
         };
 
@@ -57,7 +65,7 @@
          * @desc Returns the Scene being rendered.
          * @returns {Scene}
          */
-        that.getScene = function() {
+        scope.getScene = function() {
             return _scene;
         };
 
@@ -66,7 +74,7 @@
          * @desc Returns the SpriteSheetScheduler for updating SpriteSheets.
          * @returns {SpriteSheetScheduler}
          */
-        that.getSpriteSheetScheduler = function() {
+        scope.getSpriteSheetScheduler = function() {
             return _spriteSheetScheduler;
         };
 
@@ -77,7 +85,7 @@
          * @param {WebGLRenderer} renderer The WebGLRenderer to render the
          * scene with.
          */
-        that.initialize = function(renderer) {
+        scope.initialize = function(renderer) {
             if (true === _initialized) {
                 throw new Error("Cannot initialize Engine twice!");
             }
@@ -91,7 +99,7 @@
             window.requestAnimationFrame(
                 function Step() {
                     var now = Date.now();
-                    var dt = now - _lastUpdate;
+                    var dt = (now - _lastUpdate) * scope.simulationTimeMultiplier;
                     _lastUpdate = now;
 
                     update(dt);
@@ -100,24 +108,41 @@
                 });
         };
 
-        /// Private Methods
+        /**
+         * @method global.Engine#start
+         * @desc Starts the simulation. This is automatically called by
+         * initialize.
+         */
+        scope.start = function() {
+            _stopped = false;
+        };
+
+        /**
+         * @method global.Engine#stop
+         * @desc Stops the simulation.
+         */
+        scope.stop = function() {
+            _stopped = true;
+        };
+
+        /// Private Method
         function update(dt) {
-            if (that.paused) {
+            if (scope.paused) {
                 return;
             }
 
             _totalTime += dt;
 
             _renderer.preUpdate();
-            that.onPreUpdate.dispatch(dt);
+            scope.onPreUpdate.dispatch(dt);
             _spriteSheetScheduler.onPreUpdate(dt);
 
             _scene.update(dt, _renderer);
 
-            that.onPostUpdate.dispatch(dt);
+            scope.onPostUpdate.dispatch(dt);
         }
 
-        return that;
+        return scope;
     };
 
     global.Engine.prototype = {
