@@ -30,6 +30,8 @@
     Rotation
     </h2>
     
+        <div class="class-description">particle.Rotation</div>
+    
 </header>  
 
 <article>
@@ -47,7 +49,7 @@
     
     
     <div class="description">
-        Rotation plugin. Chooses a random rotation for each particle between min and max.
+        This plugin chooses a random rotation for each particle between min and max.
     </div>
     
 
@@ -86,13 +88,18 @@
             
             <td class="type">
             
+                
+<span class="param-type">Number</span>
+
+
+            
             </td>
             
             
             
             
             
-            <td class="description last"></td>
+            <td class="description last">The minimum value for a rotation.</td>
         </tr>
 	
 	
@@ -104,13 +111,18 @@
             
             <td class="type">
             
+                
+<span class="param-type">Number</span>
+
+
+            
             </td>
             
             
             
             
             
-            <td class="description last"></td>
+            <td class="description last">The maximum value for a rotation.</td>
         </tr>
 	
 	
@@ -131,6 +143,13 @@
     
     
     
+    <dt class="tag-author">Author:</dt>
+    <dd class="tag-author">
+        <ul>
+            <li>thegoldenmule</li>
+        </ul>
+    </dd>
+    
     
     
     
@@ -141,7 +160,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="DefaultParticlePlugins.js.html">particle/DefaultParticlePlugins.js</a>, <a href="DefaultParticlePlugins.js.html#line54">line 54</a>
+        <a href="DefaultParticlePlugins.js.html">particle/DefaultParticlePlugins.js</a>, <a href="DefaultParticlePlugins.js.html#line73">line 73</a>
     </li></ul></dd>
     
     
@@ -182,6 +201,150 @@
     
     
     
+        <h3 class="subsection-title">Methods</h3>
+        
+        <dl>
+            
+<dt>
+    <h4 class="name" id="initialize"><span class="type-signature"></span>initialize<span class="signature">(emitter, particle)</span><span class="type-signature"></span></h4>
+    
+    
+</dt>
+<dd>
+    
+    
+    <div class="description">
+        Called as part of the particle plugin lifecycle. Initialize iscalled on a particle when a particle is spawned.Note that particles are reused!
+    </div>
+    
+
+    
+    
+    
+    
+    
+        <h5>Parameters:</h5>
+        
+
+<table class="params">
+    <thead>
+	<tr>
+		
+		<th>Name</th>
+		
+		
+		<th>Type</th>
+		
+		
+		
+		
+		
+		<th class="last">Description</th>
+	</tr>
+	</thead>
+	
+	<tbody>
+	
+	
+        <tr>
+            
+                <td class="name"><code>emitter</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">ParticleEmitter</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">The ParticleEmitter acting uponthis particle.</td>
+        </tr>
+	
+	
+	
+        <tr>
+            
+                <td class="name"><code>particle</code></td>
+            
+            
+            <td class="type">
+            
+                
+<span class="param-type">Particle</span>
+
+
+            
+            </td>
+            
+            
+            
+            
+            
+            <td class="description last">The Particle to initialize.</td>
+        </tr>
+	
+	
+	</tbody>
+</table>
+    
+    
+    
+<dl class="details">
+    
+        
+    
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="DefaultParticlePlugins.js.html">particle/DefaultParticlePlugins.js</a>, <a href="DefaultParticlePlugins.js.html#line81">line 81</a>
+    </li></ul></dd>
+    
+    
+    
+    
+    
+    
+    
+</dl>
+
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+</dd>
+
+        </dl>
+    
     
     
     
@@ -196,13 +359,13 @@
 </div>
 
 <nav>
-    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Easing.html">Easing</a></li><li><a href="global.Animation.html">Animation</a></li><li><a href="global.AnimationCurve.html">AnimationCurve</a></li><li><a href="global.AnimationCurveKey.html">AnimationCurveKey</a></li><li><a href="global.Color.html">Color</a></li><li><a href="global.DisplayObject.html">DisplayObject</a></li><li><a href="global.Engine.html">Engine</a></li><li><a href="global.ImageLoader.html">ImageLoader</a></li><li><a href="global.Material.html">Material</a></li><li><a href="global.ObjectPool.html">ObjectPool</a></li><li><a href="global.particle.AlphaAnimator.html">AlphaAnimator</a></li><li><a href="global.particle.ParticlePropertyAnimator.html">ParticlePropertyAnimator</a></li><li><a href="global.particle.Rotation.html">Rotation</a></li><li><a href="global.particle.ScaleAnimator.html">ScaleAnimator</a></li><li><a href="global.Quad.html">Quad</a></li><li><a href="global.Rectangle.html">Rectangle</a></li><li><a href="global.SceneManager.html">SceneManager</a></li><li><a href="global.SceneQuery.html">SceneQuery</a></li><li><a href="global.Set.html">Set</a></li><li><a href="global.Shader.html">Shader</a></li><li><a href="global.Shape.html">Shape</a></li><li><a href="global.SpriteSheet.html">SpriteSheet</a></li><li><a href="global.SpriteSheetScheduler.html">SpriteSheetScheduler</a></li><li><a href="global.StaticImage.html">StaticImage</a></li><li><a href="global.Texture.html">Texture</a></li><li><a href="Log.html">Log</a></li></ul>
+    <h2><a href="index.html">Index</a></h2><h3>Classes</h3><ul><li><a href="Easing.html">Easing</a></li><li><a href="global.Animation.html">Animation</a></li><li><a href="global.AnimationCurve.html">AnimationCurve</a></li><li><a href="global.AnimationCurveKey.html">AnimationCurveKey</a></li><li><a href="global.Color.html">Color</a></li><li><a href="global.DisplayObject.html">DisplayObject</a></li><li><a href="global.Engine.html">Engine</a></li><li><a href="global.ImageLoader.html">ImageLoader</a></li><li><a href="global.Material.html">Material</a></li><li><a href="global.ObjectPool.html">ObjectPool</a></li><li><a href="global.particle.Acceleration.html">Acceleration</a></li><li><a href="global.particle.AlphaAnimator.html">AlphaAnimator</a></li><li><a href="global.particle.Attractor.html">Attractor</a></li><li><a href="global.particle.Lifetime.html">Lifetime</a></li><li><a href="global.particle.ParticlePropertyAnimator.html">ParticlePropertyAnimator</a></li><li><a href="global.particle.Position.html">Position</a></li><li><a href="global.particle.Rotation.html">Rotation</a></li><li><a href="global.particle.Velocity.html">Velocity</a></li><li><a href="global.Quad.html">Quad</a></li><li><a href="global.Rectangle.html">Rectangle</a></li><li><a href="global.SceneManager.html">SceneManager</a></li><li><a href="global.SceneQuery.html">SceneQuery</a></li><li><a href="global.Set.html">Set</a></li><li><a href="global.Shader.html">Shader</a></li><li><a href="global.Shape.html">Shape</a></li><li><a href="global.SpriteSheet.html">SpriteSheet</a></li><li><a href="global.SpriteSheetScheduler.html">SpriteSheetScheduler</a></li><li><a href="global.StaticImage.html">StaticImage</a></li><li><a href="global.Texture.html">Texture</a></li><li><a href="Log.html">Log</a></li><li><a href="particle.RotationAnimator.html">RotationAnimator</a></li></ul>
 </nav>
 
 <br clear="both">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Tue Aug 27 2013 08:53:40 GMT-0700 (PDT)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.2.0-dev</a> on Wed Aug 28 2013 09:08:07 GMT-0700 (PDT)
 </footer>
 
 <script> prettyPrint(); </script>

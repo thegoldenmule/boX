@@ -8813,11 +8813,19 @@ if(typeof(exports) !== 'undefined') {
     }
 
     /**
-     * Position plugin.
-     *
-     * Give it x, y, and a radius, and it will provide a random
-     * position within the bounding circle. An option innerRadius parameter may be
-     * used that will omit creating particles within the innerRadius.
+     * @class particle.Position
+     * @desc This plugin gives every particle a random position within a
+     * given radius. The inner radius parameter may be used to specify a radius
+     * that particles must be spawned outside of.
+     * @param {Number} xval The x value from which the radius should extend.
+     * @param {Number} yval The y value from which the radius should extends
+     * @param {Number} radius A radius about the x,y coordinate to spawn
+     * particles within.
+     * @param {Number} innerRadius A radius about the x,y coordinate to spawn
+     * particles outside of. If the innerRadius >= radius, radius will be
+     * resized to accommodate.
+     * @constructor
+     * @author thegoldenmule
      */
     global.particle.Position = function(xval, yval, radius, innerRadius) {
         this.x = undefined === xval ? 0 : xval;
@@ -8838,6 +8846,17 @@ if(typeof(exports) !== 'undefined') {
     global.particle.Position.prototype = {
         constructor: global.particle.Position,
 
+        /**
+         * @function global.particle.Position#initialize
+         * @desc Called as part of the particle plugin lifecycle. Initialize is
+         * called on a particle when a particle is spawned.
+         *
+         * Note that particles are reused!
+         *
+         * @param {ParticleEmitter} emitter The ParticleEmitter acting upon
+         * this particle.
+         * @param {Particle} particle The Particle to initialize.
+         */
         initialize: function(emitter, particle) {
             particle.transform.position.x = this.x + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
             particle.transform.position.y = this.y + (Math.random() - 0.5) * Math.random() * (this.radius - this.innerRadius);
@@ -8851,12 +8870,12 @@ if(typeof(exports) !== 'undefined') {
     };
 
     /**
-     * Rotation plugin. Chooses a random rotation for each particle between min and max.
-     *
-     * @param min
-     * @param max
-     *
+     * @class particle.Rotation
+     * @desc This plugin chooses a random rotation for each particle between min and max.
+     * @param {Number} min The minimum value for a rotation.
+     * @param {Number} max The maximum value for a rotation.
      * @constructor
+     * @author thegoldenmule
      */
     global.particle.Rotation = function(min, max) {
         this.min = undefined === min ? 0 : min;
@@ -8866,16 +8885,35 @@ if(typeof(exports) !== 'undefined') {
     global.particle.Rotation.prototype = {
         constructor: global.particle.Rotation,
 
+        /**
+         * @function global.particle.Rotation#initialize
+         * @desc Called as part of the particle plugin lifecycle. Initialize is
+         * called on a particle when a particle is spawned.
+         *
+         * Note that particles are reused!
+         *
+         * @param {ParticleEmitter} emitter The ParticleEmitter acting upon
+         * this particle.
+         * @param {Particle} particle The Particle to initialize.
+         */
         initialize: function(emitter, particle) {
             particle.transform.rotationInRadians = this.min + Math.random() * (this.max - this.min);
         }
     };
 
     /**
-     * Velocity plugin.
-     *
-     * Give it an angle range and a magnitude range and it will
-     * generate velocities within the ranges.
+     * @class particle.Velocity
+     * @desc The velocity plugin chooses a velocity using polar notation, i.e.
+     * given an angle range and a magnitude range, it creates a vector that is
+     * then assigned as each particle's velocity.
+     * @param {Number} minAngle The minimum angle of the velocity vector.
+     * @param {Number} maxAngle The maximum angle of the velocity vector.
+     * @param {Number} minMagnitude The minimum magnitude of the velocity
+     * vector.
+     * @param {Number} maxMagnitude The maximum magnitude of the velocity
+     * vector.
+     * @constructor
+     * @author thegoldenmule
      */
     global.particle.Velocity = function(minAngle, maxAngle, minMagnitude, maxMagnitude) {
         this.minAngle = minAngle;
@@ -8887,6 +8925,17 @@ if(typeof(exports) !== 'undefined') {
     global.particle.Velocity.prototype = {
         constructor: global.particle.Velocity,
 
+        /**
+         * @function global.particle.Velocity#initialize
+         * @desc Called as part of the particle plugin lifecycle. Initialize is
+         * called on a particle when a particle is spawned.
+         *
+         * Note that particles are reused!
+         *
+         * @param {ParticleEmitter} emitter The ParticleEmitter acting upon
+         * this particle.
+         * @param {Particle} particle The Particle to initialize.
+         */
         initialize: function(emitter, particle) {
             // pick a random angle
             var angle = (this.minAngle + Math.random() * (this.maxAngle - this.minAngle));
@@ -8898,10 +8947,13 @@ if(typeof(exports) !== 'undefined') {
     };
 
     /**
-     * Acceleration plugin.
-     *
-     * Generates constant acceleration within the range
-     * provided.
+     * @class particle.Acceleration
+     * @desc Applies a constant acceleration to each particle throughout a
+     * particle's lifetime.
+     * @param {Number} xval Acceleration to apply in the x direction.
+     * @param {Number} yval Acceleration to apply in the y direction.
+     * @constructor
+     * @author thegoldenmule
      */
     global.particle.Acceleration = function(xval, yval) {
         this.x = xval;
@@ -8911,16 +8963,26 @@ if(typeof(exports) !== 'undefined') {
     global.particle.Acceleration.prototype = {
         constructor: global.particle.Acceleration,
 
-        initialize: function(emitter, particle) {
+        /**
+         * @function global.particle.Acceleration#update
+         * @desc Called as part of the particle plugin lifecycle. Update is
+         * called every frame to update a particle.
+         * @param {ParticleEmitter} emitter The ParticleEmitter instance.
+         * @param {Particle} particle The particle to act on.
+         */
+        update: function(emitter, particle) {
             particle.ax = this.x;
             particle.ay = this.y;
         }
     };
 
     /**
-     * Lifetime plugin.
-     *
-     * Generates a particle lifetime within a range.
+     * @class particle.Lifetime
+     * @desc This plugin gives each particle a lifetime between min and max.
+     * @param {Number} min The minimum lifetime to give each particle.
+     * @param {Number} max The maximum lifetime to give each particle.
+     * @constructor
+     * @author thegoldenmule
      */
     global.particle.Lifetime = function(min, max) {
         this.min = min;
@@ -8930,16 +8992,32 @@ if(typeof(exports) !== 'undefined') {
     global.particle.Lifetime.prototype = {
         constructor: global.particle.Lifetime,
 
+        /**
+         * @function global.particle.Lifetime#initialize
+         * @desc Called as part of the particle plugin lifecycle. Initialize is
+         * called on a particle when a particle is spawned.
+         *
+         * Note that particles are reused!
+         *
+         * @param {ParticleEmitter} emitter The ParticleEmitter acting upon
+         * this particle.
+         * @param {Particle} particle The Particle to initialize.
+         */
         initialize: function(emitter, particle) {
             particle.lifetime = (this.min + Math.random() * (this.max - this.min));
         }
     };
 
     /**
-     * Attractor plugin.
-     *
-     * This attracts (or repels) particles. This only approximates gravitation.
-     *
+     * @class particle.Attractor
+     * @desc The Attractor plugin specifies a point which attracts or repels
+     * particles.
+     * @param {Number} x The x position to attract to or repel from.
+     * @param {Number} y The y position to attract to or repel from.
+     * @param {Number} amount The magnitude of the force of attraction. If this
+     * is negative it acts as a repelling force.
+     * @constructor
+     * @author thegoldenmule
      */
     global.particle.Attractor = function(x, y, amount) {
         this.x = x;
@@ -8950,6 +9028,13 @@ if(typeof(exports) !== 'undefined') {
     global.particle.Attractor.prototype = {
         constructor: global.particle.Attractor,
 
+        /**
+         * @function global.particle.Attractor#update
+         * @desc Called as part of the particle plugin lifecycle. Update is
+         * called every frame to update a particle.
+         * @param {ParticleEmitter} emitter The ParticleEmitter instance.
+         * @param {Particle} particle The particle to act on.
+         */
         update: function(emitter, particle) {
             particle.ax = this.x - particle.transform.position.x / this.amount;
             particle.ay = this.y - particle.transform.position.y / this.amount;
@@ -8957,11 +9042,12 @@ if(typeof(exports) !== 'undefined') {
     };
 
     /**
-     * Animates a property on Particle.
-     *
-     * @param propName
-     * @param curve
-     * @param scale
+     * @class particle.ParticlePropertyAnimator
+     * @desc Animates an arbitrary property on particles.
+     * @param {String} propName The name of the property to animate.
+     * @param {AnimationCurve} curve The animation curve that defines the
+     * animation.
+     * @param {Number} scale A scalar by which to multiply the AnimationCurve.
      * @constructor
      */
     global.particle.ParticlePropertyAnimator = function(propName, curve, scale) {
@@ -8973,18 +9059,25 @@ if(typeof(exports) !== 'undefined') {
     global.particle.ParticlePropertyAnimator.prototype = {
         constructor: global.particle.ParticlePropertyAnimator,
 
+        /**
+         * @function global.particle.ParticlePropertyAnimator#update
+         * @desc Called as part of the particle plugin lifecycle. Update is
+         * called every frame to update a particle.
+         * @param {ParticleEmitter} emitter The ParticleEmitter instance.
+         * @param {Particle} particle The particle to act on.
+         */
         update: function(emitter, particle) {
             particle[this.propName] = this.scale = this.curve.evaluate(particle.elapsedTime / particle.lifetime);
         }
     };
 
-    /**
-     * Animates a Particle's scale.
-     *
-     * @param curve The AnimationCurve instance.
-     * @param scale A scalar to multiply the AnimationCurve by.
-     *
+    /*
+     * @class particle.ScaleAnimator
+     * @desc Animates a Particle's scale.
+     * @param {AnimationCurve} curve The AnimationCurve instance.
+     * @param {Number} scale A scalar by which to multiply the AnimationCurve.
      * @constructor
+     * @author thegoldenmule
      */
     global.particle.ScaleAnimator = function(curve, scale) {
         this.curve = curve;
@@ -8994,6 +9087,13 @@ if(typeof(exports) !== 'undefined') {
     global.particle.ScaleAnimator.prototype = {
         constructor: global.particle.ScaleAnimator,
 
+        /**
+         * @function global.particle.ScaleAnimator#update
+         * @desc Called as part of the particle plugin lifecycle. Update is
+         * called every frame to update a particle.
+         * @param {ParticleEmitter} emitter The ParticleEmitter instance.
+         * @param {Particle} particle The particle to act on.
+         */
         update: function(emitter, particle) {
             var scale = this.scale * this.curve.evaluate(particle.elapsedTime / particle.lifetime);
 
@@ -9002,22 +9102,24 @@ if(typeof(exports) !== 'undefined') {
     };
 
     /**
-     * Animates a particle's alpha.
-     *
-     * @param curve
-     * @param scale
-     *
+     * @class particle.AlphaAnimator
+     * @desc Animates a particle's alpha. This class is simply shorthand for
+     * using a ParticlePropertyAnimator.
+     * @param {AnimationCurve} curve An AnimationCurve instance to define the
+     * animation.
+     * @param {Number} scale A scalar by which to multiply the AnimationCurve.s
      * @constructor
+     * @author thegoldenmule
      */
     global.particle.AlphaAnimator = function(curve, scale) {
         return new global.particle.ParticlePropertyAnimator("alpha", curve, scale);
     };
 
     /**
-     * Animates a particle's rotation.
-     *
-     * @param curve
-     * @param scale
+     * @class particle.RotationAnimator
+     * @desc Animates a particle's rotation.
+     * @param {AnimationCurve} curve The curve the defines the animation.
+     * @param {Number} scale A scalar by which to multiply the curve.
      */
     global.particle.RotationAnimator = (function() {
         var id = 0;
@@ -9037,6 +9139,13 @@ if(typeof(exports) !== 'undefined') {
             particle[this.__guid] = particle.transform.rotationInRadians;
         },
 
+        /**
+         * @function global.particle.RotationAnimator#update
+         * @desc Called as part of the particle plugin lifecycle. Update is
+         * called every frame to update a particle.
+         * @param {ParticleEmitter} emitter The ParticleEmitter instance.
+         * @param {Particle} particle The particle to act on.
+         */
         update: function(emitter, particle, dt) {
             particle.transform.rotationInRadians =
                 particle[this.__guid] + this.scale * this.curve.evaluate(particle.elapsedTime / particle.lifetime);
@@ -9196,10 +9305,14 @@ if(typeof(exports) !== 'undefined') {
                 }
 
                 // TODO: at least use Euler...
+                // TODO: each particle should have a mass, we're assuming mass = 1
 
                 // apply acceleration
                 particle.vx += particle.ax;
                 particle.vy += particle.ay;
+
+                // clear acceleration
+                particle.ax = particle.ay = 0;
 
                 // apply velocity
                 particle.transform.position.x += particle.vx;
@@ -10008,4 +10121,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Tue, 27 Aug 2013 08:53:16 -0700";
+var __buildTimestamp = "Wed, 28 Aug 2013 08:51:54 -0700";

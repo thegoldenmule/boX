@@ -150,10 +150,14 @@
                 }
 
                 // TODO: at least use Euler...
+                // TODO: each particle should have a mass, we're assuming mass = 1
 
                 // apply acceleration
                 particle.vx += particle.ax;
                 particle.vy += particle.ay;
+
+                // clear acceleration
+                particle.ax = particle.ay = 0;
 
                 // apply velocity
                 particle.transform.position.x += particle.vx;
