@@ -33,7 +33,7 @@ It's probably user error, but [**here's how to submit issues**](https://github.c
 
 ## How to Build?
 
-Want to build from source? Check out [How To Build bo-X](https://github.com/thegoldenmule/boX/blob/master/md/build.md).
+Want to build from source? Check out [**How To Build bo-X**](https://github.com/thegoldenmule/boX/blob/master/md/build.md).
 
 ## Roadmap
 
