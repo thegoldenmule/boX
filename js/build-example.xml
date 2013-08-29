@@ -1,0 +1,168 @@
+<project name="boX" default="dev">
+
+    <target name="-load-properties">
+        <property name="base.dir" value="[PATH_TO_CONTAINING_DIR]"/>
+        <property name="yui.jar" value="[PATH_TO_YUI_JAR]"/>
+        <property name="rhino.jar" value="[PATH_TO_RHINO_JAR]"/>
+        <property name="jshint.js" value="[PATH_TO_JSHINT_JAR]"/>
+        <property name="jsdoc.dir" value="[PATH_TO_JSDOC_JAR]"/>
+        <property name="source.js.dir" value="${base.dir}/boX/js/boX"/>
+        <property name="source.editor.js.dir" value="${base.dir}/boX/js/tools"/>
+        <property name="source.thirdparty.js.dir" value="${base.dir}/boX/js/thirdparty"/>
+        <property name="target.dir" value="${base.dir}/boX/build"/>
+        <property name="docs.dir" value="${base.dir}/boX/docs"/>
+
+        <property name="major.version" value="0"/>
+        <property name="minor.version" value="8"/>
+    </target>
+
+    <target name="-clean" depends="-load-properties">
+        <tstamp>
+            <format property="TODAY" pattern="EEE, d MMM yyyy HH:mm:ss Z"/>
+        </tstamp>
+
+        <delete dir="${target.dir}"/>
+
+        <mkdir dir="${target.dir}"/>
+        <mkdir dir="${target.dir}/js"/>
+
+        <echo file="${target.dir}/js/tstamp.js" append="false">var __buildTimestamp = "${TODAY}";</echo>
+    </target>
+
+    <target name="-js.validate" depends="-clean">
+        <pathconvert pathsep=" " property="jsfiles">
+            <fileset
+                    dir="${source.js.dir}"
+                    includes="**/*.js"/>
+            <fileset
+                    dir="${source.editor.js.dir}"
+                    includes="**/*.js"/>
+        </pathconvert>
+        <exec dir="${source.js.dir}" executable="java" failonerror="true">
+            <arg line="-jar ${rhino.jar} ${jshint.js} ${jsfiles}"/>
+        </exec>
+        <echo>Finished</echo>
+    </target>
+
+    <target name="-js.concatenate.deps" depends="-clean">
+        <concat
+                destfile="${target.dir}/js/boX.${major.version}.${minor.version}-deps.js"
+                fixlastline="yes">
+            <fileset
+                    dir="${source.thirdparty.js.dir}"
+                    includes="*.js"/>
+            <!-- glMatrix needs to be ordered -->
+            <filelist dir="${source.thirdparty.js.dir}/gl-matrix">
+                <file name="common.js"/>
+                <file name="mat2.js"/>
+                <file name="mat2d.js"/>
+                <file name="mat3.js"/>
+                <file name="mat4.js"/>
+                <file name="vec2.js"/>
+                <file name="vec3.js"/>
+                <file name="vec4.js"/>
+                <file name="quat.js"/>
+            </filelist>
+        </concat>
+        <echo>Finished</echo>
+    </target>
+
+    <target name="-js.concatenate.core" depends="-clean">
+        <concat
+                destfile="${target.dir}/js/boX.${major.version}.${minor.version}-core.js"
+                fixlastline="yes">
+            <fileset
+                    dir="${source.js.dir}"
+                    includes="**/*.js"/>
+        </concat>
+        <echo>Finished</echo>
+    </target>
+
+    <target name="-js.concatenate.editor" depends="-clean">
+        <concat
+                destfile="${target.dir}/js/boX.${major.version}.${minor.version}-editor.js"
+                fixlastline="yes">
+            <fileset
+                    dir="${source.editor.js.dir}"
+                    includes="**/*.js"/>
+        </concat>
+        <echo>Finished</echo>
+    </target>
+
+    <target name="-js.concatenate" depends="-js.concatenate.deps, -js.concatenate.core">
+        <concat
+                destfile="${target.dir}/js/boX.${major.version}.${minor.version}.js"
+                fixlastline="yes">
+            <filelist dir="${target.dir}/js">
+                <file name="boX.${major.version}.${minor.version}-deps.js"/>
+                <file name="boX.${major.version}.${minor.version}-core.js"/>
+                <file name="tstamp.js"/>
+            </filelist>
+        </concat>
+        <delete file="${target.dir}/js/tstamp.js"/>
+        <echo>Finished</echo>
+    </target>
+
+    <target name="-js.minify.editor" depends="-js.concatenate.editor">
+        <apply executable="java" parallel="false" dest="${target.dir}/js">
+            <fileset
+                    dir="${target.dir}/js"
+                    includes="boX.${major.version}.${minor.version}-editor.js"/>
+            <arg line="-jar"/>
+            <arg path="${yui.jar}"/>
+            <srcfile/>
+            <arg line="-o"/>
+            <mapper type="glob" from="*.js" to="*-min.js"/>
+            <targetfile/>
+        </apply>
+        <echo>Finished</echo>
+    </target>
+
+    <target name="-js.minify" depends="-js.concatenate">
+        <apply executable="java" parallel="false" dest="${target.dir}/js">
+            <fileset
+                dir="${target.dir}/js"
+                includes="boX.${major.version}.${minor.version}.js"/>
+            <arg line="-jar"/>
+            <arg path="${yui.jar}"/>
+            <srcfile/>
+            <arg line="-o"/>
+            <mapper type="glob" from="*.js" to="*-min.js"/>
+            <targetfile/>
+        </apply>
+        <echo>Finished</echo>
+    </target>
+
+    <target name="gen-docs" depends="-clean">
+        <delete dir="${docs.dir}"/>
+        <mkdir dir="${docs.dir}" />
+        <exec executable="cmd">
+            <arg value="/c"/>
+            <arg value="${jsdoc.dir}/jsdoc.cmd"/>
+            <arg value="${source.js.dir}"/>
+            <arg value="--destination"/>
+            <arg value="${docs.dir}"/>
+            <arg value="-r"/>
+        </exec>
+    </target>
+
+    <target name="dev"
+            depends="
+                -load-properties,
+                -clean,
+                -js.concatenate,
+                -js.concatenate.editor">
+    </target>
+
+    <target name="prod"
+            depends="
+                -load-properties,
+                -clean,
+                -js.validate,
+                -js.concatenate,
+                -js.concatenate.editor,
+                -js.minify,
+                -js.minify.editor,
+                gen-docs">
+    </target>
+</project>

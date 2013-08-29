@@ -9157,15 +9157,21 @@ if(typeof(exports) !== 'undefined') {
     "use strict";
 
     /**
-     * A Particle class. This extends DisplayObject and holds a simple physical
-     * model.
+     * @class Particle
+     * @desc This represents a single particle spawned and managed by a
+     * ParticleEmitter.
      *
-     * @param material The material to use.
-     * @returns {*}
+     * Currently Particle extends DisplayObject, which means that each particle
+     * is using its own buffer. The roadmap has improvements scheduled which
+     * will remove this bottleneck, so do not rely on Particle being a
+     * DisplayObject.
+     *
+     * @param {Material} material The material to render the Particle with.
+     * @returns {Particle}
      * @author thegoldenmule
      * @constructor
      */
-    var Particle = function (material) {
+    global.Particle = function (material) {
         var scope = this;
 
         // extend DisplayObject
@@ -9188,26 +9194,25 @@ if(typeof(exports) !== 'undefined') {
         return scope;
     };
 
-    Particle.prototype = new DisplayObject();
-    Particle.prototype.constructor = Particle;
+    global.Particle.prototype = new DisplayObject();
+    global.Particle.prototype.constructor = global.Particle;
 
     /**
-     * The ParticleEmitter class emits Particle objects, which are children.
-     *
-     * @param plugins
+     * @class ParticleEmitter
+     * @desc The ParticleEmitter class emits Particle objects, which are children.
+     * @param {Array} plugins An array of plugins to apply.
      * @param x
      * @param y
      * @param maxParticles
      * @constructor
      */
-    var ParticleEmitter = function (plugins, x, y, maxParticles) {
+    global.ParticleEmitter = function (plugins, x, y, maxParticles) {
         var scope = this;
 
         // extend DisplayObject
         DisplayObject.call(scope);
 
         var _plugins = plugins ? [].concat(plugins) : [],
-            _helper = 0,
             _bufferIndex = 0,
             _maxParticles = (undefined === maxParticles) ? 1000 : maxParticles,
             _particleBuffer = new Set(),    // particles do not need to be ordered
@@ -9336,12 +9341,8 @@ if(typeof(exports) !== 'undefined') {
         }
     };
 
-    ParticleEmitter.prototype = new DisplayObject();
-    ParticleEmitter.prototype.constructor = ParticleEmitter;
-
-    // export
-    global.Particle = Particle;
-    global.ParticleEmitter = ParticleEmitter;
+    global.ParticleEmitter.prototype = new DisplayObject();
+    global.ParticleEmitter.prototype.constructor = global.ParticleEmitter;
 })(this);
 (function(global) {
     "use strict";
@@ -10121,4 +10122,4 @@ if (!Object.keys) {
     global.XMLHelper = XMLHelper;
 })(this);
 
-var __buildTimestamp = "Wed, 28 Aug 2013 08:51:54 -0700";
+var __buildTimestamp = "Wed, 28 Aug 2013 17:18:48 -0700";
