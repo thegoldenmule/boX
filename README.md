@@ -2,7 +2,7 @@
 
 bo-X (bo-chi) is a 2D rendering engine built on WebGL.
 
-## Demos
+## Demos (Chrome Required)
 
 * [Cloth Sim](http://thegoldenmule.com/labs/boX/demos/index-fabric.html)
 * [SpriteSheet Example](http://thegoldenmule.com/labs/boX/demos/index-wyvern.html)
